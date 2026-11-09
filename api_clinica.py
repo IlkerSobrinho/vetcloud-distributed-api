@@ -732,4 +732,40 @@ def reenviar_todas_pendentes(db: Session = Depends(get_db)):
         })
     return {"total_processadas": len(processadas), "resultado": processadas}
 
+# -----------------------------------------------------------------------------
+# 12. ENTREGA DA INTERFACE WEB E GATEWAY PARA NUVEM (RENDER / PORTFÓLIO)
+# -----------------------------------------------------------------------------
+from fastapi.responses import FileResponse
 
+@app.get("/", include_in_schema=False)
+def entregar_interface_web():
+    """Entrega o index.html direto na rota raiz (/) para abrir no PC ou celular."""
+    return FileResponse("index.html")
+
+class SimuladorProxySchema(BaseModel):
+    indisponivel: bool
+
+@app.post("/api/governo-status")
+def alterar_status_governo_via_gateway(dados: SimuladorProxySchema):
+    """Repassa o comando de simular queda (503) para a API Governamental na porta 8001."""
+    try:
+        resp = requests.post(
+            f"{GOV_API_BASE_URL}/simular-status",
+            json={"indisponivel": dados.indisponivel},
+            timeout=4
+        )
+        return resp.json()
+    except Exception as erro:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Erro ao comunicar com a API Governamental (Porta 8001): {str(erro)}"
+        )
+
+@app.get("/api/governo-status")
+def consultar_status_governo_via_gateway():
+    """Consulta o status da API do Governo na porta 8001."""
+    try:
+        resp = requests.get(f"{GOV_API_BASE_URL}/simular-status", timeout=4)
+        return resp.json()
+    except Exception:
+        return {"indisponivel": True, "erro_conexao": True}
