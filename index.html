@@ -4,364 +4,741 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clínica Veterinária SDM - Sistema Distribuído (A3)</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f9; }
-    .nav-tabs .nav-link { font-weight: 600; color: #495057; }
-    .nav-tabs .nav-link.active { background-color: #0d6efd; color: #fff !important; border-color: #0d6efd; }
-    .console-box { background: #1e1e1e; color: #4af626; font-family: monospace; font-size: 0.85rem; padding: 12px; border-radius: 6px; max-height: 240px; overflow-y: auto; }
+    :root {
+      --bg: #EEF2F1;
+      --surface: #FFFFFF;
+      --line: #D9E3E0;
+      --line-strong: #C3D2CE;
+      --ink: #16302E;
+      --ink-2: #4A6360;
+      --ink-3: #7A908C;
+      --brand: #0F766E;
+      --brand-dark: #0B5C56;
+      --brand-tint: #E3F1EE;
+      --side: #0F3D3E;
+      --amber-tint: #FBF0D9;
+      --amber-ink: #7A4F0C;
+      --red: #B93B32;
+      --red-tint: #FBE7E4;
+      --green-tint: #E1F2E7;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, p { margin: 0; }
+    button, input, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    .ic {
+      width: 20px; height: 20px; flex: none;
+      fill: none; stroke: currentColor; stroke-width: 1.7;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ---------- Estrutura ---------- */
+    .app { display: grid; grid-template-columns: 264px 1fr; min-height: 100vh; }
+    .main { display: flex; flex-direction: column; min-width: 0; min-height: 100vh; }
+    .content { width: 100%; max-width: 1180px; margin: 0 auto; padding: 28px 36px; }
+
+    /* ---------- Barra lateral ---------- */
+    .side {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 28px;
+      padding: 24px 16px 20px;
+      background: var(--side); color: #CFE3DF;
+    }
+    .side :focus-visible { outline-color: #7FD6CC; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+    .brand-mark {
+      display: grid; place-items: center; width: 40px; height: 40px;
+      border-radius: 12px; background: #1B6A63; color: #fff;
+    }
+    .brand-mark .ic { width: 22px; height: 22px; }
+    .brand strong { display: block; font-size: 16px; line-height: 1.25; color: #fff; }
+    .brand span { font-size: 12.5px; color: #9DBDB7; }
+
+    .nav { display: flex; flex-direction: column; gap: 2px; }
+    .nav button {
+      display: flex; align-items: center; gap: 12px; width: 100%;
+      padding: 10px 12px; border: 0; border-radius: 10px;
+      background: none; color: #CFE3DF; font-weight: 500; text-align: left; cursor: pointer;
+    }
+    .nav button:hover { background: rgba(255, 255, 255, .07); }
+    .nav button[aria-selected="true"] { background: #E6F2EE; color: var(--side); font-weight: 600; }
+
+    .side-foot { margin-top: auto; display: grid; gap: 20px; }
+    .side-block h2 { margin: 0 8px 8px; font-size: 12.5px; font-weight: 600; color: #9DBDB7; }
+    .session .chip { margin: 0 4px; border-radius: 10px; align-items: flex-start; }
+    .session .chip::before { margin-top: 7px; }
+    .services { margin: 0; padding: 0 8px; list-style: none; display: grid; gap: 6px; font-size: 13px; }
+    .services li { display: flex; justify-content: space-between; gap: 8px; }
+    .services span { color: #9DBDB7; }
+
+    /* ---------- Faixa da API governamental ---------- */
+    .gov {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 12px 20px; margin-bottom: 28px; padding: 14px 18px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    }
+    .gov-info { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .gov-info .ic { color: var(--brand); }
+    .gov-info strong { font-weight: 600; }
+    .gov-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* ---------- Abas ---------- */
+    .pane { display: grid; gap: 20px; }
+    .pane[hidden] { display: none; }
+    .page-head h1 { font-size: 24px; line-height: 1.25; font-weight: 650; letter-spacing: -.01em; }
+    .page-head p { margin-top: 4px; max-width: 64ch; color: var(--ink-2); }
+
+    .cols { display: grid; gap: 20px; align-items: start; }
+    .cols-5-7 { grid-template-columns: 5fr 7fr; }
+    .cols-7-5 { grid-template-columns: 7fr 5fr; }
+    .cols-1-1 { grid-template-columns: 1fr 1fr; }
+    .stack { display: grid; gap: 20px; }
+
+    /* ---------- Painéis ---------- */
+    .panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { font-size: 16px; line-height: 1.3; font-weight: 650; }
+    .panel-head p { margin-top: 2px; font-size: 13.5px; color: var(--ink-2); }
+    .panel-body { padding: 20px; }
+    .panel-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 20px; border-top: 1px solid var(--line);
+      background: #F7FAF9; border-radius: 0 0 12px 12px;
+    }
+    .panel--warm { background: #FFFCF5; border-color: #EBDDB8; }
+    .panel--warm .panel-head { border-color: #EBDDB8; }
+    .panel--warm .panel-foot { background: #FAF3E0; border-color: #EBDDB8; }
+
+    .group + .group { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .group > h3 { margin-bottom: 14px; font-size: 14px; font-weight: 650; }
+    .inline-form { display: flex; align-items: center; gap: 8px; }
+    .inline-form input { width: 110px; height: 34px; }
+
+    /* ---------- Formulários ---------- */
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+    .c-2 { grid-column: span 2; } .c-3 { grid-column: span 3; } .c-4 { grid-column: span 4; }
+    .c-5 { grid-column: span 5; } .c-6 { grid-column: span 6; } .c-7 { grid-column: span 7; }
+    .c-8 { grid-column: span 8; } .c-12 { grid-column: span 12; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field > label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+    .field .opt { font-weight: 400; color: var(--ink-3); }
+    .field-row { display: flex; gap: 8px; }
+
+    input, select {
+      width: 100%; min-width: 0; height: 40px; padding: 0 12px;
+      background: #fff; border: 1px solid var(--line-strong); border-radius: 8px;
+    }
+    input::placeholder { color: var(--ink-3); }
+    input:hover, select:hover { border-color: #9BB3AE; }
+    input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(15, 118, 110, .18); }
+    input[readonly] { background: #F1F5F4; color: var(--ink-2); }
+    select {
+      appearance: none; padding-right: 34px; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A6360' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .check { display: flex; align-items: center; gap: 10px; min-height: 40px; align-self: end; font-size: 14px; color: var(--ink); cursor: pointer; }
+    .check input { width: 18px; height: 18px; accent-color: var(--brand); }
+
+    /* ---------- Botões ---------- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px;
+      font-size: 14.5px; font-weight: 600; white-space: nowrap; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-sm { height: 34px; padding: 0 12px; font-size: 13.5px; }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-soft { background: var(--brand-tint); color: var(--brand-dark); }
+    .btn-soft:hover { background: #D3E9E4; }
+    .btn-line { background: #fff; border-color: var(--line-strong); color: var(--ink); }
+    .btn-line:hover { background: #F4F8F7; }
+    .btn-danger { background: #fff; border-color: #E3B4AE; color: var(--red); }
+    .btn-danger:hover { background: var(--red-tint); }
+
+    /* ---------- Status ---------- */
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 3px 10px 3px 9px; border-radius: 999px;
+      background: #E8EFED; color: var(--ink-2);
+      font-size: 12.5px; font-weight: 600; line-height: 1.4;
+    }
+    .chip::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chip--ok { background: var(--green-tint); color: #1F6B3F; }
+    .chip--warn { background: var(--amber-tint); color: var(--amber-ink); }
+    .chip--bad { background: var(--red-tint); color: #98302A; }
+
+    /* ---------- Tabelas ---------- */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      padding: 10px 16px; background: #F6F9F8; border-bottom: 1px solid var(--line);
+      font-size: 13px; font-weight: 600; text-align: left; white-space: nowrap; color: var(--ink-2);
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid #E8EFED; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #F8FBFA; }
+    td.id { font-weight: 600; font-variant-numeric: tabular-nums; }
+    td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.empty { padding: 32px 16px; text-align: center; color: var(--ink-2); }
+    code, .mono { font-family: var(--mono); font-size: 12.5px; }
+    code { padding: 2px 6px; background: #EDF3F1; border-radius: 5px; }
+    .muted { color: var(--ink-2); }
+    .err { color: var(--red); font-size: 13px; }
+
+    /* ---------- Console ---------- */
+    .console { position: sticky; bottom: 0; z-index: 5; margin-top: auto; background: #0B2A2B; color: #CDE7DF; border-top: 1px solid #1B4B4C; }
+    .console-head { display: flex; align-items: center; gap: 12px; padding: 8px 36px; background: #0F3738; }
+    .console-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; background: none; border: 0; color: #fff; font-weight: 600; cursor: pointer; }
+    .console-toggle .ic { width: 16px; height: 16px; transition: transform .2s; }
+    .console.is-collapsed .console-toggle .ic { transform: rotate(-90deg); }
+    .console-head .spacer { flex: 1; }
+    .link-btn { padding: 6px 4px; background: none; border: 0; color: #9DD3C9; font-weight: 600; cursor: pointer; }
+    .link-btn:hover { color: #fff; }
+    .console :focus-visible { outline-color: #7FD6CC; }
+    .console-body {
+      margin: 0; padding: 12px 36px 16px; max-height: 190px; overflow: auto;
+      font: 12.5px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word;
+    }
+    .console.is-collapsed .console-body { display: none; }
+
+    /* ---------- Responsivo ---------- */
+    @media (max-width: 1180px) {
+      .cols { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .side { position: static; height: auto; gap: 14px; padding: 16px; }
+      .nav { flex-direction: row; gap: 6px; overflow-x: auto; }
+      .nav button { width: auto; padding: 9px 12px; white-space: nowrap; }
+      .side-foot { margin-top: 0; }
+      .services-block { display: none; }
+      .content { padding: 20px 16px; }
+      .console-head { padding: 8px 16px; }
+      .console-body { padding: 10px 16px 14px; max-height: 150px; }
+    }
+    @media (max-width: 760px) {
+      .grid > [class*="c-"] { grid-column: span 12; }
+      .grid > .c-2, .grid > .c-3, .grid > .c-4 { grid-column: span 6; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
   </style>
 </head>
 <body>
 
-<div class="container py-4">
-  <!-- CABEÇALHO PRINCIPAL -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 p-3 bg-primary text-white rounded shadow-sm">
-    <div>
-      <h4 class="mb-0 fw-bold">🐾 Sistema de Gestão de Clínica Veterinária (A3 - SDM)</h4>
-      <small>API Privada (Porta 8000) • API Pública ViaCEP • API Governamental Simulada (Porta 8001)</small>
-    </div>
-    <div class="mt-2 mt-md-0">
-      <span id="statusLogado" class="badge bg-warning text-dark fs-6 p-2">🔒 Não Autenticado (Vet ID: 1 padrão)</span>
-    </div>
-  </div>
+<!-- Ícones -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 5"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="6.5" cy="10" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14" cy="6" r="1.8"/><circle cx="17.5" cy="10" r="1.8"/><path d="M12 12c-3 0-5.5 3-5.5 5.2 0 1.6 1.3 2.3 2.7 2.3 1 0 1.8-.5 2.8-.5s1.8.5 2.8.5c1.4 0 2.7-.7 2.7-2.3C17.5 15 15 12 12 12z"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/><path d="M6.5 12.5H9l1.5-3 2.5 5 1.5-2h2.5"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5"/><path d="M5.5 10.5v7M9.8 10.5v7M14.2 10.5v7M18.5 10.5v7"/><path d="M3 20h18"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
 
-  <!-- BARRA DE CONTROLE DA API GOVERNAMENTAL (SEMPRE VISÍVEL PARA DEMONSTRAÇÃO) -->
-  <div class="card border-danger mb-4 shadow-sm">
-    <div class="card-body py-2 d-flex flex-wrap justify-content-between align-items-center">
+<div class="app">
+
+  <!-- ==================== BARRA LATERAL ==================== -->
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark"><svg class="ic"><use href="#i-paw"/></svg></div>
       <div>
-        <strong>🏛️ Status da API Governamental (Porta 8001):</strong>
-        <span id="badgeGov" class="badge bg-success ms-2">ONLINE (OPERACIONAL)</span>
-      </div>
-      <div class="mt-2 mt-md-0">
-        <button class="btn btn-sm btn-outline-danger me-1" onclick="alterarGov(true)">⚡ Simular Queda (Erro 503)</button>
-        <button class="btn btn-sm btn-outline-success me-1" onclick="alterarGov(false)">✅ Restaurar API Governo</button>
-        <button class="btn btn-sm btn-primary" onclick="reenviarPendentes()">🔄 Reenviar Pendências</button>
+        <strong>Clínica Veterinária</strong>
+        <span>SDM, sistema distribuído (A3)</span>
       </div>
     </div>
-  </div>
 
-  <!-- NAVEGAÇÃO EM ABAS -->
-  <ul class="nav nav-tabs mb-3" id="menuAbas" role="tablist">
-    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#aba-auth" type="button">1. Login & Veterinários</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-tutores" type="button" onclick="carregarTutores()">2. Tutores & ViaCEP</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-animais" type="button" onclick="carregarDadosAnimais()">3. Animais & Microchip RFID</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-clinica" type="button">4. Consultas & Vacinas</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#aba-governo" type="button" onclick="carregarIntegracoes()">5. Integrações Governo</button></li>
-  </ul>
+    <nav class="nav" id="menuAbas" role="tablist" aria-orientation="vertical" aria-label="Módulos do sistema">
+      <button type="button" role="tab" id="tab-auth" aria-controls="aba-auth" aria-selected="true">
+        <svg class="ic"><use href="#i-lock"/></svg>Login e veterinários
+      </button>
+      <button type="button" role="tab" id="tab-tutores" aria-controls="aba-tutores" aria-selected="false" tabindex="-1" onclick="carregarTutores()">
+        <svg class="ic"><use href="#i-users"/></svg>Tutores e ViaCEP
+      </button>
+      <button type="button" role="tab" id="tab-animais" aria-controls="aba-animais" aria-selected="false" tabindex="-1" onclick="carregarDadosAnimais()">
+        <svg class="ic"><use href="#i-paw"/></svg>Animais e microchip
+      </button>
+      <button type="button" role="tab" id="tab-clinica" aria-controls="aba-clinica" aria-selected="false" tabindex="-1">
+        <svg class="ic"><use href="#i-pulse"/></svg>Consultas e vacinas
+      </button>
+      <button type="button" role="tab" id="tab-governo" aria-controls="aba-governo" aria-selected="false" tabindex="-1" onclick="carregarIntegracoes()">
+        <svg class="ic"><use href="#i-landmark"/></svg>Integrações governo
+      </button>
+    </nav>
 
-  <!-- CONTEÚDO DAS ABAS -->
-  <div class="tab-content">
+    <div class="side-foot">
+      <div class="side-block session">
+        <h2>Sessão</h2>
+        <span id="statusLogado" class="chip chip--warn">Não autenticado (vet. ID 1 padrão)</span>
+      </div>
+      <div class="side-block services-block">
+        <h2>Serviços</h2>
+        <ul class="services">
+          <li>API privada <span>porta 8000</span></li>
+          <li>API pública <span>ViaCEP</span></li>
+          <li>API governamental <span>porta 8001</span></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
 
-    <!-- ==================== ABA 1: LOGIN E VETERINÁRIOS ==================== -->
-    <div class="tab-pane fade show active" id="aba-auth">
-      <div class="row g-3">
-        <div class="col-md-5">
-          <div class="card shadow-sm h-100">
-            <div class="card-header bg-dark text-white fw-bold">Autenticação de Veterinário (Testes #1 a #4)</div>
-            <div class="card-body">
-              <label class="form-label">Selecionar Conta de Teste Rápido (ou digite abaixo):</label>
-              <select class="form-select mb-2" onchange="document.getElementById('loginEmail').value = this.value">
-                <option value="ativo@clinica.com">ativo@clinica.com (Ativo + Senha Confirmada -> OK)</option>
-                <option value="inativo@clinica.com">inativo@clinica.com (Veterinário Inativo -> Bloqueia 403)</option>
-                <option value="pendente@clinica.com">pendente@clinica.com (Senha Não Confirmada -> Bloqueia 403)</option>
-              </select>
-              <label class="form-label">E-mail:</label>
-              <input type="email" id="loginEmail" class="form-control mb-2" value="ativo@clinica.com">
-              <label class="form-label">Senha:</label>
-              <input type="password" id="loginSenha" class="form-control mb-3" value="123456">
-              <button class="btn btn-primary w-100 mb-3" onclick="fazerLogin()">Entrar no Sistema</button>
-              <hr>
-              <h6>Confirmar Senha de Veterinário Pendente</h6>
-              <div class="input-group input-group-sm">
-                <input type="text" id="confEmail" class="form-control" placeholder="E-mail" value="pendente@clinica.com">
-                <input type="text" id="confCodigo" class="form-control" placeholder="Código" value="CODIGO-123">
-                <button class="btn btn-outline-success" onclick="confirmarSenhaVet()">Confirmar</button>
-              </div>
-            </div>
-          </div>
+  <!-- ==================== CONTEÚDO ==================== -->
+  <div class="main">
+    <div class="content">
+
+      <!-- Controle da API governamental (sempre visível para a demonstração) -->
+      <div class="gov">
+        <div class="gov-info">
+          <svg class="ic"><use href="#i-landmark"/></svg>
+          <strong>API governamental (porta 8001)</strong>
+          <span id="badgeGov" class="chip chip--ok">Online (operacional)</span>
+        </div>
+        <div class="gov-actions">
+          <button class="btn btn-sm btn-danger" onclick="alterarGov(true)">Simular queda (503)</button>
+          <button class="btn btn-sm btn-line" onclick="alterarGov(false)">Restaurar API</button>
+          <button class="btn btn-sm btn-primary" onclick="reenviarPendentes()">Reenviar pendências</button>
+        </div>
+      </div>
+
+      <!-- ==================== ABA 1: LOGIN E VETERINÁRIOS ==================== -->
+      <section class="pane" id="aba-auth" role="tabpanel" aria-labelledby="tab-auth">
+        <div class="page-head">
+          <h1>Login e veterinários</h1>
+          <p>Teste os bloqueios de acesso por situação e confirmação de senha, e cadastre novos profissionais. Testes 1 a 4.</p>
         </div>
 
-        <div class="col-md-7">
-          <div class="card shadow-sm h-100">
-            <div class="card-header bg-secondary text-white fw-bold">Cadastrar Novo Veterinário</div>
-            <div class="card-body">
-              <div class="row g-2">
-                <div class="col-md-6"><input id="vNome" class="form-control" placeholder="Nome Completo"></div>
-                <div class="col-md-6"><input id="vCpf" class="form-control" placeholder="CPF (11 dígitos)"></div>
-                <div class="col-md-4"><input id="vCrmv" class="form-control" placeholder="Nº CRMV"></div>
-                <div class="col-md-2"><input id="vUfCrmv" class="form-control" placeholder="UF" value="RJ"></div>
-                <div class="col-md-6"><input id="vTel" class="form-control" placeholder="Telefone"></div>
-                <div class="col-md-6"><input id="vEmail" type="email" class="form-control" placeholder="E-mail"></div>
-                <div class="col-md-6"><input id="vSenha" type="password" class="form-control" placeholder="Senha"></div>
-                <div class="col-md-6">
-                  <select id="vSituacao" class="form-select">
-                    <option value="ATIVO">Situação: ATIVO</option>
-                    <option value="INATIVO">Situação: INATIVO</option>
-                  </select>
-                </div>
-                <div class="col-md-6 d-flex align-items-center">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="vConfirmada" checked>
-                    <label class="form-check-label" for="vConfirmada">Já iniciar com senha confirmada</label>
+        <div class="cols cols-5-7">
+          <div class="stack">
+            <div class="panel">
+              <div class="panel-head"><h2>Entrar no sistema</h2></div>
+              <div class="panel-body">
+                <div class="grid">
+                  <div class="field c-12">
+                    <label for="contaTeste">Conta de teste rápido</label>
+                    <select id="contaTeste" onchange="document.getElementById('loginEmail').value = this.value">
+                      <option value="ativo@clinica.com">ativo@clinica.com (acesso liberado)</option>
+                      <option value="inativo@clinica.com">inativo@clinica.com (bloqueado, 403)</option>
+                      <option value="pendente@clinica.com">pendente@clinica.com (senha não confirmada, 403)</option>
+                    </select>
+                  </div>
+                  <div class="field c-12">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" value="ativo@clinica.com">
+                  </div>
+                  <div class="field c-12">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" value="123456">
                   </div>
                 </div>
-                <div class="col-12 mt-2">
-                  <button class="btn btn-success w-100" onclick="cadastrarVeterinario()">Salvar Veterinário</button>
+              </div>
+              <div class="panel-foot">
+                <button class="btn btn-primary" onclick="fazerLogin()">Entrar no sistema</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>Confirmar senha pendente</h2>
+                  <p>Libera o login de um veterinário que ainda não confirmou a senha.</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== ABA 2: TUTORES E VIACEP ==================== -->
-    <div class="tab-pane fade" id="aba-tutores">
-      <div class="card shadow-sm mb-3">
-        <div class="card-header bg-primary text-white fw-bold">Cadastro Completo de Tutor e Endereço com ViaCEP (Testes #5 e #6)</div>
-        <div class="card-body">
-          <div class="row g-2">
-            <div class="col-md-4"><label class="form-label small mb-0">Nome Completo *</label><input id="tNome" class="form-control" placeholder="Ex: Ilker Sobrinho"></div>
-            <div class="col-md-3"><label class="form-label small mb-0">CPF (11 dígitos - Único) *</label><input id="tCpf" class="form-control" placeholder="Somente números"></div>
-            <div class="col-md-2"><label class="form-label small mb-0">Data Nascimento *</label><input id="tNasc" type="date" class="form-control"></div>
-            <div class="col-md-3"><label class="form-label small mb-0">Telefone *</label><input id="tTelefone" class="form-control" placeholder="(21) 99999-9999"></div>
-            <div class="col-md-4"><label class="form-label small mb-0">E-mail do Tutor *</label><input id="tEmail" type="email" class="form-control" placeholder="email@dominio.com"></div>
-
-            <div class="col-md-3">
-              <label class="form-label small mb-0">CEP (Busca Automática) *</label>
-              <div class="input-group">
-                <input id="tCep" class="form-control" placeholder="Ex: 22785576">
-                <button class="btn btn-info fw-bold" onclick="buscarCep()">Buscar CEP</button>
+              <div class="panel-body">
+                <div class="grid">
+                  <div class="field c-12">
+                    <label for="confEmail">E-mail</label>
+                    <input type="text" id="confEmail" placeholder="E-mail" value="pendente@clinica.com">
+                  </div>
+                  <div class="field c-12">
+                    <label for="confCodigo">Código de confirmação</label>
+                    <input type="text" id="confCodigo" placeholder="Código" value="CODIGO-123">
+                  </div>
+                </div>
+              </div>
+              <div class="panel-foot">
+                <button class="btn btn-soft" onclick="confirmarSenhaVet()">Confirmar senha</button>
               </div>
             </div>
-            <div class="col-md-5"><label class="form-label small mb-0">Logradouro *</label><input id="tLogradouro" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label small mb-0">Número *</label><input id="tNumero" class="form-control"></div>
-            <div class="col-md-3"><label class="form-label small mb-0">Complemento</label><input id="tComplemento" class="form-control" placeholder="Apto, Bloco, Casa..."></div>
-            <div class="col-md-3"><label class="form-label small mb-0">Bairro *</label><input id="tBairro" class="form-control"></div>
-            <div class="col-md-2"><label class="form-label small mb-0">Cidade *</label><input id="tCidade" class="form-control"></div>
-            <div class="col-md-1"><label class="form-label small mb-0">UF *</label><input id="tUf" class="form-control"></div>
-            <div class="col-md-1"><label class="form-label small mb-0">IBGE</label><input id="tIbge" class="form-control" readonly></div>
+          </div>
 
-            <div class="col-12 mt-3">
-              <button class="btn btn-success w-100 fw-bold" onclick="salvarTutor()">💾 Cadastrar Tutor e Endereço</button>
+          <div class="panel">
+            <div class="panel-head"><h2>Cadastrar novo veterinário</h2></div>
+            <div class="panel-body">
+              <div class="grid">
+                <div class="field c-7"><label for="vNome">Nome completo</label><input id="vNome"></div>
+                <div class="field c-5"><label for="vCpf">CPF</label><input id="vCpf" placeholder="11 dígitos"></div>
+                <div class="field c-4"><label for="vCrmv">Nº do CRMV</label><input id="vCrmv"></div>
+                <div class="field c-2"><label for="vUfCrmv">UF</label><input id="vUfCrmv" value="RJ"></div>
+                <div class="field c-6"><label for="vTel">Telefone</label><input id="vTel"></div>
+                <div class="field c-6"><label for="vEmail">E-mail</label><input id="vEmail" type="email"></div>
+                <div class="field c-6"><label for="vSenha">Senha</label><input id="vSenha" type="password"></div>
+                <div class="field c-6">
+                  <label for="vSituacao">Situação</label>
+                  <select id="vSituacao">
+                    <option value="ATIVO">Ativo</option>
+                    <option value="INATIVO">Inativo</option>
+                  </select>
+                </div>
+                <label class="check c-12" for="vConfirmada">
+                  <input type="checkbox" id="vConfirmada" checked>
+                  Já iniciar com senha confirmada
+                </label>
+              </div>
+            </div>
+            <div class="panel-foot">
+              <button class="btn btn-primary" onclick="cadastrarVeterinario()">Salvar veterinário</button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- TABELA DE TUTORES CADASTRADOS -->
-      <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <span>Tutores Cadastrados no Banco</span>
-          <button class="btn btn-sm btn-outline-light" onclick="carregarTutores()">🔄 Atualizar Lista</button>
+      <!-- ==================== ABA 2: TUTORES E VIACEP ==================== -->
+      <section class="pane" id="aba-tutores" role="tabpanel" aria-labelledby="tab-tutores" hidden>
+        <div class="page-head">
+          <h1>Tutores e ViaCEP</h1>
+          <p>Cadastre o tutor com o endereço preenchido automaticamente pelo CEP. Testes 5 e 6.</p>
         </div>
-        <div class="card-body p-0">
-          <table class="table table-striped table-hover mb-0">
-            <thead><tr><th>ID</th><th>Nome Completo</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Situação</th></tr></thead>
-            <tbody id="tabelaTutores"><tr><td colspan="6" class="text-center">Clique em Atualizar Lista...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- ==================== ABA 3: ANIMAIS E MICROCHIP RFID ==================== -->
-    <div class="tab-pane fade" id="aba-animais">
-      <div class="row g-3 mb-3">
-        <!-- CADASTRO COMPLETO DO ANIMAL -->
-        <div class="col-md-7">
-          <div class="card shadow-sm h-100">
-            <div class="card-header bg-primary text-white fw-bold">Cadastrar Animal (Com Sexo, Cor, Espécie e Raça)</div>
-            <div class="card-body">
-              <div class="row g-2">
-                <div class="col-md-5"><label class="form-label small mb-0">Nome do Animal *</label><input id="aNome" class="form-control" placeholder="Ex: Rex / Pentelho"></div>
-                <div class="col-md-3">
-                  <label class="form-label small mb-0">Sexo *</label>
-                  <select id="aSexo" class="form-select">
+        <div class="panel">
+          <div class="panel-head"><h2>Novo tutor</h2></div>
+          <div class="panel-body">
+            <div class="group">
+              <h3>Dados pessoais</h3>
+              <div class="grid">
+                <div class="field c-5"><label for="tNome">Nome completo</label><input id="tNome" placeholder="Ex: Ilker Sobrinho"></div>
+                <div class="field c-4"><label for="tCpf">CPF (único)</label><input id="tCpf" placeholder="Somente números"></div>
+                <div class="field c-3"><label for="tNasc">Data de nascimento</label><input id="tNasc" type="date"></div>
+                <div class="field c-6"><label for="tEmail">E-mail</label><input id="tEmail" type="email" placeholder="email@dominio.com"></div>
+                <div class="field c-6"><label for="tTelefone">Telefone</label><input id="tTelefone" placeholder="(21) 99999-9999"></div>
+              </div>
+            </div>
+            <div class="group">
+              <h3>Endereço</h3>
+              <div class="grid">
+                <div class="field c-4">
+                  <label for="tCep">CEP</label>
+                  <div class="field-row">
+                    <input id="tCep" placeholder="Ex: 22785576">
+                    <button class="btn btn-soft" onclick="buscarCep()">Buscar</button>
+                  </div>
+                </div>
+                <div class="field c-6"><label for="tLogradouro">Logradouro</label><input id="tLogradouro"></div>
+                <div class="field c-2"><label for="tNumero">Número</label><input id="tNumero"></div>
+                <div class="field c-3"><label for="tComplemento">Complemento <span class="opt">(opcional)</span></label><input id="tComplemento" placeholder="Apto, bloco, casa"></div>
+                <div class="field c-3"><label for="tBairro">Bairro</label><input id="tBairro"></div>
+                <div class="field c-2"><label for="tCidade">Cidade</label><input id="tCidade"></div>
+                <div class="field c-2"><label for="tUf">UF</label><input id="tUf"></div>
+                <div class="field c-2"><label for="tIbge">Código IBGE</label><input id="tIbge" readonly></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-foot">
+            <button class="btn btn-primary" onclick="salvarTutor()">Cadastrar tutor e endereço</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Tutores cadastrados</h2>
+            <button class="btn btn-sm btn-line" onclick="carregarTutores()">Atualizar lista</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Nome completo</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Situação</th></tr></thead>
+              <tbody id="tabelaTutores"><tr><td colspan="6" class="empty">Use Atualizar lista para carregar os tutores.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== ABA 3: ANIMAIS E MICROCHIP RFID ==================== -->
+      <section class="pane" id="aba-animais" role="tabpanel" aria-labelledby="tab-animais" hidden>
+        <div class="page-head">
+          <h1>Animais e microchip</h1>
+          <p>Cadastre o animal e vincule ou substitua o microchip RFID. Testes 7 e 8.</p>
+        </div>
+
+        <div class="cols cols-7-5">
+          <div class="panel">
+            <div class="panel-head"><h2>Cadastrar animal</h2></div>
+            <div class="panel-body">
+              <div class="grid">
+                <div class="field c-6"><label for="aNome">Nome do animal</label><input id="aNome" placeholder="Ex: Rex, Pentelho"></div>
+                <div class="field c-6">
+                  <label for="aSexo">Sexo</label>
+                  <select id="aSexo">
                     <option value="M">Macho (M)</option>
                     <option value="F">Fêmea (F)</option>
                     <option value="INDEFINIDO">Indefinido</option>
                   </select>
                 </div>
-                <div class="col-md-4"><label class="form-label small mb-0">Cor / Pelagem *</label><input id="aCor" class="form-control" placeholder="Ex: Caramelo, Preto..."></div>
-                <div class="col-md-3"><label class="form-label small mb-0">Peso Atual (kg) *</label><input id="aPeso" type="number" step="0.1" class="form-control" value="10.5"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Data Nasc. (Opcional)</label><input id="aDataNasc" type="date" class="form-control"></div>
-                <div class="col-md-5"><label class="form-label small mb-0">Idade Estimada</label><input id="aIdadeEst" class="form-control" placeholder="Ex: 2 anos"></div>
-
-                <div class="col-md-4"><label class="form-label small mb-0">ID do Tutor *</label><input id="aTutorId" type="number" class="form-control" value="1"></div>
-                <div class="col-md-4">
-                  <label class="form-label small mb-0">Espécie *</label>
-                  <select id="aEspecieId" class="form-select">
-                    <option value="1">1 - Canina (Cão)</option>
-                    <option value="2">2 - Felina (Gato)</option>
+                <div class="field c-6"><label for="aCor">Cor / pelagem</label><input id="aCor" placeholder="Ex: Caramelo, preto"></div>
+                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" step="0.1" value="10.5"></div>
+                <div class="field c-6"><label for="aDataNasc">Data de nascimento <span class="opt">(opcional)</span></label><input id="aDataNasc" type="date"></div>
+                <div class="field c-6"><label for="aIdadeEst">Idade estimada <span class="opt">(opcional)</span></label><input id="aIdadeEst" placeholder="Ex: 2 anos"></div>
+                <div class="field c-4"><label for="aTutorId">ID do tutor</label><input id="aTutorId" type="number" value="1"></div>
+                <div class="field c-8">
+                  <label for="aEspecieId">Espécie</label>
+                  <select id="aEspecieId">
+                    <option value="1">1 - Canina (cão)</option>
+                    <option value="2">2 - Felina (gato)</option>
                   </select>
                 </div>
-                <div class="col-md-4">
-                  <label class="form-label small mb-0">Raça (Compatível) *</label>
-                  <select id="aRacaId" class="form-select">
-                    <option value="1">1 - SRD (Cão)</option>
-                    <option value="2">2 - Pastor Alemão (Cão)</option>
-                    <option value="3">3 - Siamês (Gato)</option>
+                <div class="field c-12">
+                  <label for="aRacaId">Raça (compatível com a espécie)</label>
+                  <select id="aRacaId">
+                    <option value="1">1 - SRD (cão)</option>
+                    <option value="2">2 - Pastor Alemão (cão)</option>
+                    <option value="3">3 - Siamês (gato)</option>
                   </select>
-                </div>
-                <div class="col-12 mt-3">
-                  <button class="btn btn-primary w-100 fw-bold" onclick="salvarAnimal()">🐶 Cadastrar Animal</button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- VÍNCULO E SUBSTITUIÇÃO DE MICROCHIP RFID -->
-        <div class="col-md-5">
-          <div class="card shadow-sm h-100 border-warning">
-            <div class="card-header bg-warning text-dark fw-bold">Vínculo / Substituição de Microchip RFID (Testes #7 e #8)</div>
-            <div class="card-body">
-              <label class="form-label small mb-0">ID do Animal Cadastrado *</label>
-              <input id="mAnimalId" type="number" class="form-control mb-2" value="1">
-              <label class="form-label small mb-0">Código Único do Microchip RFID *</label>
-              <input id="mCodigo" class="form-control mb-2" placeholder="Ex: RFID-BR-987654">
-              <label class="form-label small mb-0">Motivo (Caso seja substituição de chip antigo)</label>
-              <input id="mMotivo" class="form-control mb-3" value="Implantação inicial de microchip">
-              <button class="btn btn-warning w-100 fw-bold" onclick="vincularChip()">📡 Vincular Microchip RFID</button>
+            <div class="panel-foot">
+              <button class="btn btn-primary" onclick="salvarAnimal()">Cadastrar animal</button>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- TABELA DE ANIMAIS -->
-      <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <span>Animais Cadastrados e Status do Microchip</span>
-          <button class="btn btn-sm btn-outline-light" onclick="carregarDadosAnimais()">🔄 Atualizar Lista</button>
-        </div>
-        <div class="card-body p-0">
-          <table class="table table-striped table-hover mb-0">
-            <thead><tr><th>ID</th><th>Nome</th><th>Sexo</th><th>Cor</th><th>Peso</th><th>Tutor ID</th><th>Microchip RFID</th><th>Status Governo</th></tr></thead>
-            <tbody id="tabelaAnimais"><tr><td colspan="8" class="text-center">Clique em Atualizar Lista...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== ABA 4: CONSULTAS E VACINAS ==================== -->
-    <div class="tab-pane fade" id="aba-clinica">
-      <div class="row g-3 mb-3">
-        <!-- REGISTRO DE CONSULTA -->
-        <div class="col-md-6">
-          <div class="card shadow-sm h-100">
-            <div class="card-header bg-info text-dark fw-bold">Registrar Consulta Clínica (Teste #9)</div>
-            <div class="card-body">
-              <div class="row g-2">
-                <div class="col-md-4"><label class="form-label small mb-0">ID Animal *</label><input id="cAnimalId" type="number" class="form-control" value="1"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Data/Hora *</label><input id="cDataHora" type="datetime-local" class="form-control" value="2026-11-01T10:00"></div>
-                <div class="col-md-4">
-                  <label class="form-label small mb-0">Situação *</label>
-                  <select id="cSituacao" class="form-select">
-                    <option value="REALIZADA">REALIZADA</option>
-                    <option value="AGENDADA">AGENDADA</option>
-                    <option value="CANCELADA">CANCELADA</option>
-                  </select>
-                </div>
-                <div class="col-md-12"><input id="cMotivo" class="form-control" placeholder="Motivo do atendimento (Ex: Check-up anual)"></div>
-                <div class="col-md-6"><input id="cSintomas" class="form-control" placeholder="Sintomas observados"></div>
-                <div class="col-md-6"><input id="cDiagnostico" class="form-control" placeholder="Diagnóstico"></div>
-                <div class="col-md-6"><input id="cTratamento" class="form-control" placeholder="Tratamento prescrito"></div>
-                <div class="col-md-6"><input id="cPrescricao" class="form-control" placeholder="Medicamentos prescritos"></div>
-                <div class="col-md-6"><input id="cPeso" type="number" step="0.1" class="form-control" placeholder="Peso na consulta (kg)" value="10.5"></div>
-                <div class="col-md-6"><input id="cTemp" type="number" step="0.1" class="form-control" placeholder="Temperatura (°C)" value="38.5"></div>
-                <div class="col-12 mt-2">
-                  <button class="btn btn-info w-100 fw-bold" onclick="registrarConsulta()">🩺 Salvar Consulta Clínica</button>
-                </div>
+          <div class="panel panel--warm">
+            <div class="panel-head">
+              <div>
+                <h2>Microchip RFID</h2>
+                <p>Vincula um chip novo ou substitui o antigo.</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- REGISTRO DE VACINA -->
-        <div class="col-md-6">
-          <div class="card shadow-sm h-100 border-success">
-            <div class="card-header bg-success text-white fw-bold">Registrar Vacina e Sincronização Antirrábica (Testes #10, #12, #13)</div>
-            <div class="card-body">
-              <div class="row g-2">
-                <div class="col-md-3"><label class="form-label small mb-0">ID Animal *</label><input id="vacAnimalId" type="number" class="form-control" value="1"></div>
-                <div class="col-md-9">
-                  <label class="form-label small mb-0">Classificação / Tipo de Vacina *</label>
-                  <select id="vacTipo" class="form-select">
-                    <option value="ANTIRRABICA">🚨 ANTIRRÁBICA (Comunicação Obrigatória ao Governo)</option>
-                    <option value="POLIVALENTE_V10">Polivalente V8 / V10 (Apenas Registro Local)</option>
-                    <option value="GRIPE">Gripe Canina (Apenas Registro Local)</option>
-                  </select>
-                </div>
-                <div class="col-md-6"><label class="form-label small mb-0">Nome Comercial *</label><input id="vacNome" class="form-control" value="Vacina Antirrábica Nobivac"></div>
-                <div class="col-md-6"><label class="form-label small mb-0">Fabricante *</label><input id="vacFab" class="form-control" value="MSD Saúde Animal"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Nº Lote *</label><input id="vacLote" class="form-control" value="LOTE-2026-RJ"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Dose/Etapa *</label><input id="vacDose" class="form-control" value="Dose Anual"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Via Aplicação *</label><input id="vacVia" class="form-control" value="Subcutânea"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Data Aplicação *</label><input id="vacData" type="date" class="form-control" value="2026-11-01"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Próxima Dose</label><input id="vacProx" type="date" class="form-control" value="2027-11-01"></div>
-                <div class="col-md-4"><label class="form-label small mb-0">Validade Lote *</label><input id="vacVal" type="date" class="form-control" value="2028-05-01"></div>
-                <div class="col-12 mt-2">
-                  <button class="btn btn-success w-100 fw-bold" onclick="aplicarVacina()">💉 Aplicar Vacina</button>
-                </div>
+            <div class="panel-body">
+              <div class="grid">
+                <div class="field c-12"><label for="mAnimalId">ID do animal</label><input id="mAnimalId" type="number" value="1"></div>
+                <div class="field c-12"><label for="mCodigo">Código único do microchip</label><input id="mCodigo" placeholder="Ex: RFID-BR-987654"></div>
+                <div class="field c-12"><label for="mMotivo">Motivo <span class="opt">(para substituição de chip antigo)</span></label><input id="mMotivo" value="Implantação inicial de microchip"></div>
               </div>
+            </div>
+            <div class="panel-foot">
+              <button class="btn btn-primary" onclick="vincularChip()">Vincular microchip</button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- CONSULTA DE HISTÓRICO DO ANIMAL -->
-      <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <span>Consultar Prontuário Completo do Animal (Consultas e Vacinas)</span>
-          <div class="d-flex">
-            <input id="histAnimalId" type="number" class="form-control form-control-sm me-2" style="width: 100px;" value="1" placeholder="ID Animal">
-            <button class="btn btn-sm btn-warning fw-bold" onclick="consultarHistoricoAnimal()">🔍 Buscar Histórico</button>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Animais cadastrados</h2>
+            <button class="btn btn-sm btn-line" onclick="carregarDadosAnimais()">Atualizar lista</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Nome</th><th>Sexo</th><th>Cor</th><th>Peso</th><th>Tutor</th><th>Microchip RFID</th><th>Governo</th></tr></thead>
+              <tbody id="tabelaAnimais"><tr><td colspan="8" class="empty">Use Atualizar lista para carregar os animais.</td></tr></tbody>
+            </table>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- ==================== ABA 5: INTEGRAÇÕES COM O GOVERNO ==================== -->
-    <div class="tab-pane fade" id="aba-governo">
-      <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <span>Fila de Operações Distribuídas e Protocolos Governamentais (Testes #14, #15 e #16)</span>
-          <button class="btn btn-sm btn-outline-light" onclick="carregarIntegracoes()">🔄 Atualizar Fila</button>
+      <!-- ==================== ABA 4: CONSULTAS E VACINAS ==================== -->
+      <section class="pane" id="aba-clinica" role="tabpanel" aria-labelledby="tab-clinica" hidden>
+        <div class="page-head">
+          <h1>Consultas e vacinas</h1>
+          <p>Registre atendimentos e vacinas. A antirrábica é comunicada ao governo; as demais ficam só no registro local. Testes 9, 10, 12 e 13.</p>
         </div>
-        <div class="card-body p-0">
-          <table class="table table-striped table-hover mb-0">
-            <thead><tr><th>ID</th><th>Animal ID</th><th>Vacina ID</th><th>Operação</th><th>Situação</th><th>Protocolo Governo</th><th>Tentativas</th><th>Chave Idempotência</th><th>Erro (se houver)</th></tr></thead>
-            <tbody id="tabelaIntegracoes"><tr><td colspan="9" class="text-center">Clique em Atualizar Fila...</td></tr></tbody>
-          </table>
+
+        <div class="cols cols-1-1">
+          <div class="panel">
+            <div class="panel-head"><h2>Registrar consulta</h2></div>
+            <div class="panel-body">
+              <div class="grid">
+                <div class="field c-4"><label for="cAnimalId">ID do animal</label><input id="cAnimalId" type="number" value="1"></div>
+                <div class="field c-8"><label for="cDataHora">Data e hora</label><input id="cDataHora" type="datetime-local" value="2026-11-01T10:00"></div>
+                <div class="field c-6">
+                  <label for="cSituacao">Situação</label>
+                  <select id="cSituacao">
+                    <option value="REALIZADA">Realizada</option>
+                    <option value="AGENDADA">Agendada</option>
+                    <option value="CANCELADA">Cancelada</option>
+                  </select>
+                </div>
+                <div class="field c-6"><label for="cMotivo">Motivo do atendimento</label><input id="cMotivo" placeholder="Ex: Check-up anual"></div>
+                <div class="field c-6"><label for="cSintomas">Sintomas observados</label><input id="cSintomas"></div>
+                <div class="field c-6"><label for="cDiagnostico">Diagnóstico</label><input id="cDiagnostico"></div>
+                <div class="field c-6"><label for="cTratamento">Tratamento prescrito</label><input id="cTratamento"></div>
+                <div class="field c-6"><label for="cPrescricao">Medicamentos prescritos</label><input id="cPrescricao"></div>
+                <div class="field c-6"><label for="cPeso">Peso na consulta (kg)</label><input id="cPeso" type="number" step="0.1" value="10.5"></div>
+                <div class="field c-6"><label for="cTemp">Temperatura (°C)</label><input id="cTemp" type="number" step="0.1" value="38.5"></div>
+              </div>
+            </div>
+            <div class="panel-foot">
+              <button class="btn btn-primary" onclick="registrarConsulta()">Salvar consulta</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Registrar vacina</h2></div>
+            <div class="panel-body">
+              <div class="grid">
+                <div class="field c-4"><label for="vacAnimalId">ID do animal</label><input id="vacAnimalId" type="number" value="1"></div>
+                <div class="field c-8">
+                  <label for="vacTipo">Tipo de vacina</label>
+                  <select id="vacTipo">
+                    <option value="ANTIRRABICA">Antirrábica (comunicada ao governo)</option>
+                    <option value="POLIVALENTE_V10">Polivalente V8/V10 (só local)</option>
+                    <option value="GRIPE">Gripe canina (só local)</option>
+                  </select>
+                </div>
+                <div class="field c-6"><label for="vacNome">Nome comercial</label><input id="vacNome" value="Vacina Antirrábica Nobivac"></div>
+                <div class="field c-6"><label for="vacFab">Fabricante</label><input id="vacFab" value="MSD Saúde Animal"></div>
+                <div class="field c-6"><label for="vacLote">Nº do lote</label><input id="vacLote" value="LOTE-2026-RJ"></div>
+                <div class="field c-6"><label for="vacDose">Dose / etapa</label><input id="vacDose" value="Dose Anual"></div>
+                <div class="field c-6"><label for="vacVia">Via de aplicação</label><input id="vacVia" value="Subcutânea"></div>
+                <div class="field c-6"><label for="vacData">Data da aplicação</label><input id="vacData" type="date" value="2026-11-01"></div>
+                <div class="field c-6"><label for="vacProx">Próxima dose <span class="opt">(opcional)</span></label><input id="vacProx" type="date" value="2027-11-01"></div>
+                <div class="field c-6"><label for="vacVal">Validade do lote</label><input id="vacVal" type="date" value="2028-05-01"></div>
+              </div>
+            </div>
+            <div class="panel-foot">
+              <button class="btn btn-primary" onclick="aplicarVacina()">Aplicar vacina</button>
+            </div>
+          </div>
         </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Prontuário do animal</h2>
+              <p>Consultas e vacinas aparecem no console, no rodapé da página.</p>
+            </div>
+            <div class="inline-form">
+              <input id="histAnimalId" type="number" value="1" placeholder="ID" aria-label="ID do animal">
+              <button class="btn btn-sm btn-primary" onclick="consultarHistoricoAnimal()">Buscar histórico</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== ABA 5: INTEGRAÇÕES COM O GOVERNO ==================== -->
+      <section class="pane" id="aba-governo" role="tabpanel" aria-labelledby="tab-governo" hidden>
+        <div class="page-head">
+          <h1>Integrações com o governo</h1>
+          <p>Fila de operações distribuídas, tentativas de envio e protocolos recebidos. Testes 14 a 16.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Fila de operações</h2>
+            <button class="btn btn-sm btn-line" onclick="carregarIntegracoes()">Atualizar fila</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Animal</th><th>Vacina</th><th>Operação</th><th>Situação</th><th>Protocolo do governo</th><th>Tentativas</th><th>Chave de idempotência</th><th>Erro</th></tr></thead>
+              <tbody id="tabelaIntegracoes"><tr><td colspan="9" class="empty">Use Atualizar fila para carregar as operações.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==================== CONSOLE DE RESPOSTAS ==================== -->
+    <section class="console" id="painelConsole" aria-label="Console de respostas">
+      <div class="console-head">
+        <button type="button" class="console-toggle" aria-expanded="true" aria-controls="consoleOutput" onclick="alternarConsole()">
+          <svg class="ic"><use href="#i-chevron"/></svg>Resposta da API (HTTP e JSON)
+        </button>
+        <span id="consoleStatus" class="chip">Sem requisições</span>
+        <span class="spacer"></span>
+        <button type="button" class="link-btn" onclick="limparConsole()">Limpar</button>
       </div>
-    </div>
-
-  </div>
-
-  <!-- CONSOLE DE RESPOSTAS JSON -->
-  <div class="card mt-4 shadow-sm">
-    <div class="card-header bg-dark text-white py-1 d-flex justify-content-between align-items-center">
-      <small class="fw-bold">📡 Console de Resposta HTTP / Inspector de Payloads JSON</small>
-      <button class="btn btn-sm btn-link text-light text-decoration-none py-0" onclick="document.getElementById('consoleOutput').textContent='Console limpo.'">Limpar</button>
-    </div>
-    <div class="card-body p-0">
-      <pre id="consoleOutput" class="console-box mb-0">Sistema pronto. Selecione uma operação acima...</pre>
-    </div>
+      <pre id="consoleOutput" class="console-body">Sistema pronto. Escolha uma operação para ver a resposta aqui.</pre>
+    </section>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Detecta automaticamente se abriu via arquivo local (file://) ou via servidor/nuvem (Render / localhost:8000)
 const BASE_URL = window.location.protocol === "file:" ? "http://localhost:8000" : window.location.origin;
 const API_CLINICA = `${BASE_URL}/api`;
 let vetLogadoId = 1;
 
-function mostrarLog(titulo, dados) {
-  document.getElementById("consoleOutput").textContent = `[${new Date().toLocaleTimeString()}] ${titulo}:\n` + JSON.stringify(dados, null, 2);
+// ---------- Interface ----------
+const abas = [...document.querySelectorAll('#menuAbas [role="tab"]')];
+
+function ativarAba(btn) {
+  abas.forEach(b => {
+    const ativa = b === btn;
+    b.setAttribute("aria-selected", ativa);
+    b.tabIndex = ativa ? 0 : -1;
+    document.getElementById(b.getAttribute("aria-controls")).hidden = !ativa;
+  });
 }
+
+abas.forEach((b, i) => {
+  b.addEventListener("click", () => ativarAba(b));
+  b.addEventListener("keydown", e => {
+    const passo = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    if (!passo) return;
+    e.preventDefault();
+    const proxima = abas[(i + passo + abas.length) % abas.length];
+    proxima.focus();
+    proxima.click();
+  });
+});
+
+const rotulo = s => s ? s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, " ") : "-";
+
+function definirChip(el, estado, texto) {
+  el.className = `chip chip--${estado}`;
+  el.textContent = texto;
+}
+
+function mostrarLog(titulo, dados, falha = false) {
+  document.getElementById("consoleOutput").textContent =
+    `[${new Date().toLocaleTimeString()}] ${titulo}:\n` + JSON.stringify(dados, null, 2);
+  const chip = document.getElementById("consoleStatus");
+  const m = titulo.match(/HTTP (\d{3})/);
+  if (falha) definirChip(chip, "bad", "Sem resposta");
+  else if (m) definirChip(chip, Number(m[1]) < 400 ? "ok" : "bad", `HTTP ${m[1]}`);
+  else definirChip(chip, "ok", "Resposta recebida");
+}
+
+function limparConsole() {
+  document.getElementById("consoleOutput").textContent = "Console limpo.";
+  definirChip(document.getElementById("consoleStatus"), "", "Sem requisições");
+}
+
+function alternarConsole() {
+  const painel = document.getElementById("painelConsole");
+  const recolhido = painel.classList.toggle("is-collapsed");
+  painel.querySelector(".console-toggle").setAttribute("aria-expanded", !recolhido);
+}
+
+// Falhas de rede (API fora do ar, CORS, etc.) aparecem no console em vez de passarem em silêncio
+window.addEventListener("unhandledrejection", e => {
+  mostrarLog("Falha de comunicação", {
+    erro: String((e.reason && e.reason.message) || e.reason),
+    api: API_CLINICA,
+    dica: "Confirme se o servidor da clínica está rodando."
+  }, true);
+});
 
 // 1. AUTENTICAÇÃO E VETERINÁRIOS
 async function fazerLogin() {
@@ -374,9 +751,7 @@ async function fazerLogin() {
   const d = await r.json();
   if (r.ok) {
     vetLogadoId = d.veterinario.id;
-    const badge = document.getElementById("statusLogado");
-    badge.className = "badge bg-light text-success fs-6 p-2";
-    badge.textContent = `✅ Logado: ${d.veterinario.nome_completo} (ID: ${vetLogadoId})`;
+    definirChip(document.getElementById("statusLogado"), "ok", `Logado: ${d.veterinario.nome_completo} (ID: ${vetLogadoId})`);
   }
   mostrarLog(`Login Veterinário (HTTP ${r.status})`, d);
 }
@@ -456,14 +831,14 @@ async function carregarTutores() {
   const tbody = document.getElementById("tabelaTutores");
   tbody.innerHTML = lista.map(t => `
     <tr>
-      <td><strong>${t.id}</strong></td>
+      <td class="id">${t.id}</td>
       <td>${t.nome_completo}</td>
-      <td>${t.cpf}</td>
+      <td class="num">${t.cpf}</td>
       <td>${t.email}</td>
-      <td>${t.telefone}</td>
-      <td><span class="badge bg-success">${t.situacao}</span></td>
+      <td class="num">${t.telefone}</td>
+      <td><span class="chip ${/^ativ/i.test(t.situacao) ? 'chip--ok' : ''}">${rotulo(t.situacao)}</span></td>
     </tr>
-  `).join("") || '<tr><td colspan="6" class="text-center">Nenhum tutor cadastrado.</td></tr>';
+  `).join("") || '<tr><td colspan="6" class="empty">Nenhum tutor cadastrado ainda.</td></tr>';
 }
 
 // 3. ANIMAIS E MICROCHIP
@@ -508,16 +883,16 @@ async function carregarDadosAnimais() {
   const tbody = document.getElementById("tabelaAnimais");
   tbody.innerHTML = lista.map(a => `
     <tr>
-      <td><strong>${a.id}</strong></td>
+      <td class="id">${a.id}</td>
       <td>${a.nome}</td>
       <td>${a.sexo}</td>
       <td>${a.cor}</td>
-      <td>${a.peso_atual} kg</td>
-      <td>Tutor #${a.tutor_id}</td>
-      <td><code>${a.microchip_rfid || "Sem Chip"}</code></td>
-      <td><span class="badge ${a.situacao_integracao_gov === 'SINCRONIZADO' ? 'bg-success' : 'bg-secondary'}">${a.situacao_integracao_gov}</span></td>
+      <td class="num">${a.peso_atual} kg</td>
+      <td class="num">Tutor #${a.tutor_id}</td>
+      <td>${a.microchip_rfid ? `<code>${a.microchip_rfid}</code>` : '<span class="muted">Sem chip</span>'}</td>
+      <td><span class="chip ${a.situacao_integracao_gov === 'SINCRONIZADO' ? 'chip--ok' : ''}">${rotulo(a.situacao_integracao_gov)}</span></td>
     </tr>
-  `).join("") || '<tr><td colspan="8" class="text-center">Nenhum animal cadastrado.</td></tr>';
+  `).join("") || '<tr><td colspan="8" class="empty">Nenhum animal cadastrado ainda.</td></tr>';
 }
 
 // 4. CONSULTAS E VACINAS
@@ -568,7 +943,7 @@ async function consultarHistoricoAnimal() {
   const id = document.getElementById("histAnimalId").value;
   const rCons = await fetch(`${API_CLINICA}/animais/${id}/consultas`);
   const rVac = await fetch(`${API_CLINICA}/animais/${id}/vacinas`);
-  mostrarLog(`Prontuário Completo do Animal #${id}`, {
+  mostrarLog(`Prontuário Completo do Animal #${id} (HTTP ${rCons.status})`, {
     consultas: await rCons.json(),
     vacinacao: await rVac.json()
   });
@@ -580,14 +955,14 @@ async function alterarGov(indisponivel) {
     method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({indisponivel})
   });
   const badge = document.getElementById("badgeGov");
-  badge.className = indisponivel ? "badge bg-danger ms-2" : "badge bg-success ms-2";
-  badge.textContent = indisponivel ? "INDISPONÍVEL (ERRO 503 ATIVO)" : "ONLINE (OPERACIONAL)";
-  mostrarLog("Simulador API Governo", await r.json());
+  if (indisponivel) definirChip(badge, "bad", "Indisponível (erro 503 ativo)");
+  else definirChip(badge, "ok", "Online (operacional)");
+  mostrarLog(`Simulador API Governo (HTTP ${r.status})`, await r.json());
 }
 
 async function reenviarPendentes() {
   const r = await fetch(`${API_CLINICA}/integracoes/reenviar-pendentes`, {method: "POST"});
-  mostrarLog("Reenvio Idempotente de Pendências", await r.json());
+  mostrarLog(`Reenvio Idempotente de Pendências (HTTP ${r.status})`, await r.json());
   carregarIntegracoes();
 }
 
@@ -597,17 +972,17 @@ async function carregarIntegracoes() {
   const tbody = document.getElementById("tabelaIntegracoes");
   tbody.innerHTML = lista.map(i => `
     <tr>
-      <td><strong>#${i.id}</strong></td>
-      <td>Animal #${i.animal_id}</td>
-      <td>Vacina #${i.vacina_id || "-"}</td>
-      <td>${i.tipo_operacao}</td>
-      <td><span class="badge ${i.situacao === 'CONFIRMADA' ? 'bg-success' : 'bg-warning text-dark'}">${i.situacao}</span></td>
-      <td><code>${i.protocolo_externo || "Pendente"}</code></td>
-      <td>${i.quantidade_tentativas}</td>
-      <td><small class="text-muted">${i.chave_idempotencia.substring(0, 12)}...</small></td>
-      <td><small class="text-danger">${i.mensagem_erro || "-"}</small></td>
+      <td class="id">#${i.id}</td>
+      <td class="num">Animal #${i.animal_id}</td>
+      <td class="num">${i.vacina_id ? `Vacina #${i.vacina_id}` : "-"}</td>
+      <td>${rotulo(i.tipo_operacao)}</td>
+      <td><span class="chip ${i.situacao === 'CONFIRMADA' ? 'chip--ok' : 'chip--warn'}">${rotulo(i.situacao)}</span></td>
+      <td>${i.protocolo_externo ? `<code>${i.protocolo_externo}</code>` : '<span class="muted">Pendente</span>'}</td>
+      <td class="num">${i.quantidade_tentativas}</td>
+      <td><span class="mono muted" title="${i.chave_idempotencia}">${i.chave_idempotencia.substring(0, 12)}…</span></td>
+      <td><span class="err">${i.mensagem_erro || "-"}</span></td>
     </tr>
-  `).join("") || '<tr><td colspan="9" class="text-center">Nenhuma operação de integração registrada ainda.</td></tr>';
+  `).join("") || '<tr><td colspan="9" class="empty">Nenhuma operação de integração registrada ainda.</td></tr>';
 }
 </script>
 </body>
