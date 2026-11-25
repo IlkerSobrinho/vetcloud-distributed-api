@@ -1,113 +1,44 @@
-# 🐾 Sistema de Gestão de Clínica Veterinária (A3 - SDM)
+# VetCloud — Sistema de Gestão de Clínica Veterinária (A3 - SDM)
 
-Projeto desenvolvido para a Avaliação A3 da disciplina de **Sistemas Distribuídos e Mobile (SDM)** do Centro Universitário IBMR.
+Sistema web distribuído desenvolvido para a Avaliação A3 da disciplina de **Sistemas Distribuídos e Mobile (SDM)** do Centro Universitário IBMR.
+
+- **Aplicação em Produção (Render):** https://nzk-vetcloud.onrender.com
+- **Documentação Swagger (API Clínica):** https://nzk-vetcloud.onrender.com/docs
+
+> **Nota sobre a nuvem gratuita:** O ambiente hospedado no Render entra em modo de hibernação após períodos de inatividade; o primeiro acesso pode levar cerca de 50 segundos para inicializar os dois serviços.
 
 ---
 
-##  Arquitetura do Sistema
+## Arquitetura do Sistema
 
-O projeto demonstra conceitos de **Sistemas Distribuídos**, operando com serviços desacoplados que se comunicam via HTTP/REST:
+O projeto aplica fundamentos de **Sistemas Distribuídos**, operando com microsserviços independentes, bancos SQLite fisicamente isolados e comunicação via HTTP/REST (JSON):
 
 1. **API Privada da Clínica (`api_clinica.py` — Porta 8000)**
-   - Persistência relacional via SQLite (`clinica.db`) com SQLAlchemy
-   - Autenticação e hash de segurança
-   - Integração com a API pública **ViaCEP**
-   - Gestão de pendências e fila de sincronização
+   - Persistência relacional via SQLite (`clinica.db`) com SQLAlchemy (10 entidades obrigatórias).
+   - Autenticação de veterinários com hash **SHA-256 + salt** e trava tripla (cadastro ativo, senha confirmada e credenciais válidas).
+   - Integração com a API pública **ViaCEP** com tratamento de formato inválido (`400`), CEP inexistente (`404`), indisponibilidade (`503`) e timeout (`504`).
+   - Vínculo e substituição de microchip RFID com histórico e gestão de fila de pendências/retentativas.
+   - Entrega da interface web (`GET /`) e gateway de status governamental (`/api/governo-status`).
 
 2. **API Governamental Simulada (`api_governo.py` — Porta 8001)**
-   - Persistência isolada (`governo.db`)
-   - Registro obrigatório de vacinação antirrábica e controle de microchip RFID
-   - Garantia de **idempotência** (evita duplicidade em retentativas)
-   - Painel de simulação de indisponibilidade (HTTP 503)
+   - Persistência independente em banco próprio (`governo.db` — 3 tabelas).
+   - Registro e atualização de animais microchipados e recebimento obrigatório de vacinações antirrábicas com emissão de protocolos únicos.
+   - Garantia de **idempotência** via `chave_idempotencia` (`UNIQUE`), impedindo duplicidade em retentativas.
+   - Simulador de indisponibilidade (`HTTP 503`) para validação de tolerância a falhas.
 
 3. **Frontend Web (`index.html`)**
-   - Interface em HTML5, Bootstrap 5 e JavaScript assíncrono (`fetch`)
-   - Estruturada em 5 abas operacionais: Autenticação, Tutores, Animais, Prontuário e Fila de Integração
+   - Interface responsiva construída em **HTML5, CSS3 customizado e JavaScript Vanilla (`fetch`)**, sem dependência de frameworks externos.
+   - Detecção automática de ambiente (execução local ou nuvem), 5 módulos operacionais, painel de simulação de queda do governo e console integrado de respostas HTTP/JSON.
+
+4. **Orquestrador de Execução (`start.py`)**
+   - Inicializa a API Governamental em segundo plano na porta `8001` e sobe a API Privada na porta pública configurada (`PORT` no ambiente em nuvem ou `8000` localmente), mantendo os dois processos e bancos desacoplados.
 
 ---
 
-##  Como Executar o Projeto
+## Como Executar Localmente
 
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/IlkerSobrinho/projeto-sdm-vet.git
-cd projeto-sdm-vet
-```
-
-### 2. Criar e Ativar o Ambiente Virtual
-
-**Windows (PowerShell):**
-
-```powershell
-python -m venv .venv
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.venv\Scripts\activate
-```
-
-**Linux / macOS:**
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Instalar as Dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Iniciar os Serviços
-
-Abra **dois terminais**:
-
-**Terminal 1 — API Governamental (Porta 8001):**
-
-```bash
-uvicorn api_governo:app --reload --port 8001
-```
-
-**Terminal 2 — API da Clínica (Porta 8000):**
-
-```bash
-uvicorn api_clinica:app --reload --port 8000
-```
-
-> **Nota:** Na primeira inicialização da API da Clínica, os bancos `clinica.db` e `governo.db` são gerados automaticamente com dados iniciais de teste.
-
----
-
-##  Acessos e Documentação
-
-| Recurso                        | URL / Caminho                  |
-|--------------------------------|--------------------------------|
-| Interface Web                  | Abra o arquivo `index.html`    |
-| Swagger OpenAPI (Clínica)      | http://localhost:8000/docs     |
-| Swagger OpenAPI (Governo)      | http://localhost:8001/docs     |
-
----
-
-##  Contas Pré-configuradas para Teste de Login
-
-| E-mail               | Senha  | Comportamento / Cenário                                              |
-|----------------------|--------|----------------------------------------------------------------------|
-| ativo@clinica.com    | 123456 | HTTP 200 OK — Veterinário ativo e com senha confirmada               |
-| inativo@clinica.com  | 123456 | HTTP 403 Forbidden — Bloqueio de acesso para veterinário inativo     |
-| pendente@clinica.com | 123456 | HTTP 403 Forbidden — Bloqueio por confirmação pendente (Código: CODIGO-123) |
-
----
-
-##  Estrutura do Projeto
-
-```
-projeto-sdm-vet/
-├── api_clinica.py
-├── api_governo.py
-├── index.html
-├── requirements.txt
-├── schema.sql
-├── clinica.db          # gerado automaticamente
-├── governo.db          # gerado automaticamente
-└── README.md
-```
+git clone [https://github.com/IlkerSobrinho/vetcloud-distributed-api.git](https://github.com/IlkerSobrinho/vetcloud-distributed-api.git)
+cd vetcloud-distributed-api
