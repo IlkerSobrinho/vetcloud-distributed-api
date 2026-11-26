@@ -501,7 +501,7 @@
                   </select>
                 </div>
                 <div class="field c-6"><label for="aCor">Cor / pelagem</label><input id="aCor" placeholder="Ex: Caramelo, preto" required></div>
-                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" min="0.01" step="0.1" value="10.5" required></div>
+                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" min="1" max="100" step="0.01" value="10.5" required></div>
                 <div class="field c-6"><label for="aDataNasc">Data de nascimento <span class="opt">(opcional)</span></label><input id="aDataNasc" type="date"></div>
                 <div class="field c-6"><label for="aIdadeEst">Idade estimada <span class="opt">(opcional)</span></label><input id="aIdadeEst" placeholder="Ex: 2 anos"></div>
                 <div class="field c-12">
@@ -605,7 +605,7 @@
                 <div class="field c-6"><label for="cDiagnostico">Diagnóstico</label><input id="cDiagnostico"></div>
                 <div class="field c-6"><label for="cTratamento">Tratamento prescrito</label><input id="cTratamento"></div>
                 <div class="field c-6"><label for="cPrescricao">Medicamentos prescritos</label><input id="cPrescricao"></div>
-                <div class="field c-6"><label for="cPeso">Peso na consulta (kg)</label><input id="cPeso" type="number" min="0.01" step="0.1" value="10.5"></div>
+                <div class="field c-6"><label for="cPeso">Peso na consulta (kg)</label><input id="cPeso" type="number" min="1" max="100" step="0.01" value="10.5"></div>
                 <div class="field c-6"><label for="cTemp">Temperatura (°C)</label><input id="cTemp" type="number" min="30" max="45" step="0.1" value="38.5"></div>
               </div>
             </div>
@@ -1007,8 +1007,8 @@ async function salvarAnimal() {
     mostrarLog("Validação de Animal (HTTP 400)", { erro: "Cadastre e selecione um tutor (Nome e CPF) antes de cadastrar o animal." }, true);
     return;
   }
-  if (isNaN(peso) || peso <= 0) {
-    mostrarLog("Validação de Animal (HTTP 422)", { erro: "O peso atual deve ser maior que zero." }, true);
+  if (isNaN(peso) || peso < 1 || peso > 100) {
+    mostrarLog("Validação de Animal (HTTP 422)", { erro: "O peso atual deve estar entre 1 kg e 100 kg." }, true);
     return;
   }
   if (ehDataFutura(dataNasc)) {
@@ -1089,8 +1089,8 @@ async function registrarConsulta() {
     mostrarLog("Validação de Consulta (HTTP 400)", { erro: "Selecione um animal cadastrado." }, true);
     return;
   }
-  if (peso !== null && peso <= 0) {
-    mostrarLog("Validação de Consulta (HTTP 422)", { erro: "O peso na consulta deve ser maior que zero." }, true);
+ if (peso !== null && (isNaN(peso) || peso < 1 || peso > 100)) {
+    mostrarLog("Validação de Consulta (HTTP 422)", { erro: "O peso na consulta deve estar entre 1 kg e 100 kg." }, true);
     return;
   }
 
