@@ -140,6 +140,10 @@
 
     .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .field > label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+    .field:has(input:required, select:required) > label::after {
+      content: " *";
+      color: var(--red);
+    }
     .field .opt { font-weight: 400; color: var(--ink-3); }
     .field-row { display: flex; gap: 8px; }
 
@@ -317,9 +321,9 @@
           <span id="badgeGov" class="chip chip--ok">Online (operacional)</span>
         </div>
         <div class="gov-actions">
-          <button class="btn btn-sm btn-danger" onclick="alterarGov(true)">Simular queda (503)</button>
-          <button class="btn btn-sm btn-line" onclick="alterarGov(false)">Restaurar API</button>
-          <button class="btn btn-sm btn-primary" onclick="reenviarPendentes()">Reenviar pendências</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="alterarGov(true)">Simular queda (503)</button>
+          <button type="button" class="btn btn-sm btn-line" onclick="alterarGov(false)">Restaurar API</button>
+          <button type="button" class="btn btn-sm btn-primary" onclick="reenviarPendentes()">Reenviar pendências</button>
         </div>
       </div>
 
@@ -332,7 +336,7 @@
 
         <div class="cols cols-5-7">
           <div class="stack">
-            <div class="panel">
+            <form class="panel" onsubmit="event.preventDefault(); fazerLogin()">
               <div class="panel-head"><h2>Entrar no sistema</h2></div>
               <div class="panel-body">
                 <div class="grid">
@@ -346,20 +350,20 @@
                   </div>
                   <div class="field c-12">
                     <label for="loginEmail">E-mail</label>
-                    <input type="email" id="loginEmail" value="ativo@clinica.com">
+                    <input type="email" id="loginEmail" value="ativo@clinica.com" required>
                   </div>
                   <div class="field c-12">
                     <label for="loginSenha">Senha</label>
-                    <input type="password" id="loginSenha" value="123456">
+                    <input type="password" id="loginSenha" value="123456" required>
                   </div>
                 </div>
               </div>
               <div class="panel-foot">
-                <button class="btn btn-primary" onclick="fazerLogin()">Entrar no sistema</button>
+                <button type="submit" class="btn btn-primary">Entrar no sistema</button>
               </div>
-            </div>
+            </form>
 
-            <div class="panel">
+            <form class="panel" onsubmit="event.preventDefault(); confirmarSenhaVet()">
               <div class="panel-head">
                 <div>
                   <h2>Confirmar senha pendente</h2>
@@ -370,31 +374,31 @@
                 <div class="grid">
                   <div class="field c-12">
                     <label for="confEmail">E-mail</label>
-                    <input type="text" id="confEmail" placeholder="E-mail" value="pendente@clinica.com">
+                    <input type="email" id="confEmail" placeholder="E-mail" value="pendente@clinica.com" required>
                   </div>
                   <div class="field c-12">
                     <label for="confCodigo">Código de confirmação</label>
-                    <input type="text" id="confCodigo" placeholder="Código" value="CODIGO-123">
+                    <input type="text" id="confCodigo" placeholder="Código" value="CODIGO-123" required>
                   </div>
                 </div>
               </div>
               <div class="panel-foot">
-                <button class="btn btn-soft" onclick="confirmarSenhaVet()">Confirmar senha</button>
+                <button type="submit" class="btn btn-soft">Confirmar senha</button>
               </div>
-            </div>
+            </form>
           </div>
 
-          <div class="panel">
+          <form class="panel" onsubmit="event.preventDefault(); cadastrarVeterinario()">
             <div class="panel-head"><h2>Cadastrar novo veterinário</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-7"><label for="vNome">Nome completo</label><input id="vNome"></div>
-                <div class="field c-5"><label for="vCpf">CPF</label><input id="vCpf" placeholder="11 dígitos"></div>
-                <div class="field c-4"><label for="vCrmv">Nº do CRMV</label><input id="vCrmv"></div>
-                <div class="field c-2"><label for="vUfCrmv">UF</label><input id="vUfCrmv" value="RJ"></div>
-                <div class="field c-6"><label for="vTel">Telefone</label><input id="vTel"></div>
-                <div class="field c-6"><label for="vEmail">E-mail</label><input id="vEmail" type="email"></div>
-                <div class="field c-6"><label for="vSenha">Senha</label><input id="vSenha" type="password"></div>
+                <div class="field c-7"><label for="vNome">Nome completo</label><input id="vNome" required></div>
+                <div class="field c-5"><label for="vCpf">CPF</label><input id="vCpf" placeholder="11 dígitos" required></div>
+                <div class="field c-4"><label for="vCrmv">Nº do CRMV</label><input id="vCrmv" required></div>
+                <div class="field c-2"><label for="vUfCrmv">UF</label><input id="vUfCrmv" value="RJ" required></div>
+                <div class="field c-6"><label for="vTel">Telefone</label><input id="vTel" required></div>
+                <div class="field c-6"><label for="vEmail">E-mail</label><input id="vEmail" type="email" required></div>
+                <div class="field c-6"><label for="vSenha">Senha</label><input id="vSenha" type="password" required></div>
                 <div class="field c-6">
                   <label for="vSituacao">Situação</label>
                   <select id="vSituacao">
@@ -409,9 +413,9 @@
               </div>
             </div>
             <div class="panel-foot">
-              <button class="btn btn-primary" onclick="cadastrarVeterinario()">Salvar veterinário</button>
+              <button type="submit" class="btn btn-primary">Salvar veterinário</button>
             </div>
-          </div>
+          </form>
         </div>
       </section>
 
@@ -422,17 +426,17 @@
           <p>Cadastre o tutor com o endereço preenchido automaticamente pelo CEP. Testes 5 e 6.</p>
         </div>
 
-        <div class="panel">
+        <form class="panel" onsubmit="event.preventDefault(); salvarTutor()">
           <div class="panel-head"><h2>Novo tutor</h2></div>
           <div class="panel-body">
             <div class="group">
               <h3>Dados pessoais</h3>
               <div class="grid">
                 <div class="field c-5"><label for="tNome">Nome completo</label><input id="tNome" placeholder="Ex: Maria Santos" required></div>
-                <div class="field c-4"><label for="tCpf">CPF (único)</label><input id="tCpf" placeholder="Somente números" re></div>
-                <div class="field c-3"><label for="tNasc">Data de nascimento</label><input id="tNasc" type="date"></div>
-                <div class="field c-6"><label for="tEmail">E-mail</label><input id="tEmail" type="email" placeholder="email@dominio.com"></div>
-                <div class="field c-6"><label for="tTelefone">Telefone</label><input id="tTelefone" placeholder="(21) 99999-9999"></div>
+                <div class="field c-4"><label for="tCpf">CPF (único)</label><input id="tCpf" placeholder="Somente números" required></div>
+                <div class="field c-3"><label for="tNasc">Data de nascimento</label><input id="tNasc" type="date" required></div>
+                <div class="field c-6"><label for="tEmail">E-mail</label><input id="tEmail" type="email" placeholder="email@dominio.com" required></div>
+                <div class="field c-6"><label for="tTelefone">Telefone</label><input id="tTelefone" placeholder="(21) 99999-9999" required></div>
               </div>
             </div>
             <div class="group">
@@ -441,29 +445,29 @@
                 <div class="field c-4">
                   <label for="tCep">CEP</label>
                   <div class="field-row">
-                    <input id="tCep" placeholder="Ex: 22785576">
-                    <button class="btn btn-soft" onclick="buscarCep()">Buscar</button>
+                    <input id="tCep" placeholder="Ex: 22785576" required>
+                    <button type="button" class="btn btn-soft" onclick="buscarCep()">Buscar</button>
                   </div>
                 </div>
-                <div class="field c-6"><label for="tLogradouro">Logradouro</label><input id="tLogradouro"></div>
-                <div class="field c-2"><label for="tNumero">Número</label><input id="tNumero"></div>
+                <div class="field c-6"><label for="tLogradouro">Logradouro</label><input id="tLogradouro" required></div>
+                <div class="field c-2"><label for="tNumero">Número</label><input id="tNumero" required></div>
                 <div class="field c-3"><label for="tComplemento">Complemento <span class="opt">(opcional)</span></label><input id="tComplemento" placeholder="Apto, bloco, casa"></div>
-                <div class="field c-3"><label for="tBairro">Bairro</label><input id="tBairro"></div>
-                <div class="field c-2"><label for="tCidade">Cidade</label><input id="tCidade"></div>
-                <div class="field c-2"><label for="tUf">UF</label><input id="tUf"></div>
+                <div class="field c-3"><label for="tBairro">Bairro</label><input id="tBairro" required></div>
+                <div class="field c-2"><label for="tCidade">Cidade</label><input id="tCidade" required></div>
+                <div class="field c-2"><label for="tUf">UF</label><input id="tUf" required></div>
                 <div class="field c-2"><label for="tIbge">Código IBGE</label><input id="tIbge" readonly></div>
               </div>
             </div>
           </div>
           <div class="panel-foot">
-            <button class="btn btn-primary" onclick="salvarTutor()">Cadastrar tutor e endereço</button>
+            <button type="submit" class="btn btn-primary">Cadastrar tutor e endereço</button>
           </div>
-        </div>
+        </form>
 
         <div class="panel">
           <div class="panel-head">
             <h2>Tutores cadastrados</h2>
-            <button class="btn btn-sm btn-line" onclick="carregarTutores()">Atualizar lista</button>
+            <button type="button" class="btn btn-sm btn-line" onclick="carregarTutores()">Atualizar lista</button>
           </div>
           <div class="table-wrap">
             <table>
@@ -482,11 +486,11 @@
         </div>
 
         <div class="cols cols-7-5">
-          <div class="panel">
+          <form class="panel" onsubmit="event.preventDefault(); salvarAnimal()">
             <div class="panel-head"><h2>Cadastrar animal</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-6"><label for="aNome">Nome do animal</label><input id="aNome" placeholder="Ex: Rex, Pentelho"></div>
+                <div class="field c-6"><label for="aNome">Nome do animal</label><input id="aNome" placeholder="Ex: Rex, Pentelho" required></div>
                 <div class="field c-6">
                   <label for="aSexo">Sexo</label>
                   <select id="aSexo">
@@ -495,11 +499,11 @@
                     <option value="INDEFINIDO">Indefinido</option>
                   </select>
                 </div>
-                <div class="field c-6"><label for="aCor">Cor / pelagem</label><input id="aCor" placeholder="Ex: Caramelo, preto"></div>
-                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" step="0.1" value="10.5"></div>
+                <div class="field c-6"><label for="aCor">Cor / pelagem</label><input id="aCor" placeholder="Ex: Caramelo, preto" required></div>
+                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" step="0.1" value="10.5" required></div>
                 <div class="field c-6"><label for="aDataNasc">Data de nascimento <span class="opt">(opcional)</span></label><input id="aDataNasc" type="date"></div>
                 <div class="field c-6"><label for="aIdadeEst">Idade estimada <span class="opt">(opcional)</span></label><input id="aIdadeEst" placeholder="Ex: 2 anos"></div>
-                <div class="field c-4"><label for="aTutorId">ID do tutor</label><input id="aTutorId" type="number" value="1"></div>
+                <div class="field c-4"><label for="aTutorId">ID do tutor</label><input id="aTutorId" type="number" value="1" required></div>
                 <div class="field c-8">
                   <label for="aEspecieId">Espécie</label>
                   <select id="aEspecieId">
@@ -518,11 +522,11 @@
               </div>
             </div>
             <div class="panel-foot">
-              <button class="btn btn-primary" onclick="salvarAnimal()">Cadastrar animal</button>
+              <button type="submit" class="btn btn-primary">Cadastrar animal</button>
             </div>
-          </div>
+          </form>
 
-          <div class="panel panel--warm">
+          <form class="panel panel--warm" onsubmit="event.preventDefault(); vincularChip()">
             <div class="panel-head">
               <div>
                 <h2>Microchip RFID</h2>
@@ -531,21 +535,21 @@
             </div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-12"><label for="mAnimalId">ID do animal</label><input id="mAnimalId" type="number" value="1"></div>
-                <div class="field c-12"><label for="mCodigo">Código único do microchip</label><input id="mCodigo" placeholder="Ex: RFID-BR-987654"></div>
+                <div class="field c-12"><label for="mAnimalId">ID do animal</label><input id="mAnimalId" type="number" value="1" required></div>
+                <div class="field c-12"><label for="mCodigo">Código único do microchip</label><input id="mCodigo" placeholder="Ex: RFID-BR-987654" required></div>
                 <div class="field c-12"><label for="mMotivo">Motivo <span class="opt">(para substituição de chip antigo)</span></label><input id="mMotivo" value="Implantação inicial de microchip"></div>
               </div>
             </div>
             <div class="panel-foot">
-              <button class="btn btn-primary" onclick="vincularChip()">Vincular microchip</button>
+              <button type="submit" class="btn btn-primary">Vincular microchip</button>
             </div>
-          </div>
+          </form>
         </div>
 
         <div class="panel">
           <div class="panel-head">
             <h2>Animais cadastrados</h2>
-            <button class="btn btn-sm btn-line" onclick="carregarDadosAnimais()">Atualizar lista</button>
+            <button type="button" class="btn btn-sm btn-line" onclick="carregarDadosAnimais()">Atualizar lista</button>
           </div>
           <div class="table-wrap">
             <table>
@@ -564,12 +568,12 @@
         </div>
 
         <div class="cols cols-1-1">
-          <div class="panel">
+          <form class="panel" onsubmit="event.preventDefault(); registrarConsulta()">
             <div class="panel-head"><h2>Registrar consulta</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-4"><label for="cAnimalId">ID do animal</label><input id="cAnimalId" type="number" value="1"></div>
-                <div class="field c-8"><label for="cDataHora">Data e hora</label><input id="cDataHora" type="datetime-local" value="2026-11-01T10:00"></div>
+                <div class="field c-4"><label for="cAnimalId">ID do animal</label><input id="cAnimalId" type="number" value="1" required></div>
+                <div class="field c-8"><label for="cDataHora">Data e hora</label><input id="cDataHora" type="datetime-local" value="2026-11-01T10:00" required></div>
                 <div class="field c-6">
                   <label for="cSituacao">Situação</label>
                   <select id="cSituacao">
@@ -578,7 +582,7 @@
                     <option value="CANCELADA">Cancelada</option>
                   </select>
                 </div>
-                <div class="field c-6"><label for="cMotivo">Motivo do atendimento</label><input id="cMotivo" placeholder="Ex: Check-up anual"></div>
+                <div class="field c-6"><label for="cMotivo">Motivo do atendimento</label><input id="cMotivo" placeholder="Ex: Check-up anual" required></div>
                 <div class="field c-6"><label for="cSintomas">Sintomas observados</label><input id="cSintomas"></div>
                 <div class="field c-6"><label for="cDiagnostico">Diagnóstico</label><input id="cDiagnostico"></div>
                 <div class="field c-6"><label for="cTratamento">Tratamento prescrito</label><input id="cTratamento"></div>
@@ -588,15 +592,15 @@
               </div>
             </div>
             <div class="panel-foot">
-              <button class="btn btn-primary" onclick="registrarConsulta()">Salvar consulta</button>
+              <button type="submit" class="btn btn-primary">Salvar consulta</button>
             </div>
-          </div>
+          </form>
 
-          <div class="panel">
+          <form class="panel" onsubmit="event.preventDefault(); aplicarVacina()">
             <div class="panel-head"><h2>Registrar vacina</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-4"><label for="vacAnimalId">ID do animal</label><input id="vacAnimalId" type="number" value="1"></div>
+                <div class="field c-4"><label for="vacAnimalId">ID do animal</label><input id="vacAnimalId" type="number" value="1" required></div>
                 <div class="field c-8">
                   <label for="vacTipo">Tipo de vacina</label>
                   <select id="vacTipo">
@@ -605,20 +609,20 @@
                     <option value="GRIPE">Gripe canina (só local)</option>
                   </select>
                 </div>
-                <div class="field c-6"><label for="vacNome">Nome comercial</label><input id="vacNome" value="Vacina Antirrábica Nobivac"></div>
-                <div class="field c-6"><label for="vacFab">Fabricante</label><input id="vacFab" value="MSD Saúde Animal"></div>
-                <div class="field c-6"><label for="vacLote">Nº do lote</label><input id="vacLote" value="LOTE-2026-RJ"></div>
-                <div class="field c-6"><label for="vacDose">Dose / etapa</label><input id="vacDose" value="Dose Anual"></div>
-                <div class="field c-6"><label for="vacVia">Via de aplicação</label><input id="vacVia" value="Subcutânea"></div>
-                <div class="field c-6"><label for="vacData">Data da aplicação</label><input id="vacData" type="date" value="2026-11-01"></div>
+                <div class="field c-6"><label for="vacNome">Nome comercial</label><input id="vacNome" value="Vacina Antirrábica Nobivac" required></div>
+                <div class="field c-6"><label for="vacFab">Fabricante</label><input id="vacFab" value="MSD Saúde Animal" required></div>
+                <div class="field c-6"><label for="vacLote">Nº do lote</label><input id="vacLote" value="LOTE-2026-RJ" required></div>
+                <div class="field c-6"><label for="vacDose">Dose / etapa</label><input id="vacDose" value="Dose Anual" required></div>
+                <div class="field c-6"><label for="vacVia">Via de aplicação</label><input id="vacVia" value="Subcutânea" required></div>
+                <div class="field c-6"><label for="vacData">Data da aplicação</label><input id="vacData" type="date" value="2026-11-01" required></div>
                 <div class="field c-6"><label for="vacProx">Próxima dose <span class="opt">(opcional)</span></label><input id="vacProx" type="date" value="2027-11-01"></div>
-                <div class="field c-6"><label for="vacVal">Validade do lote</label><input id="vacVal" type="date" value="2028-05-01"></div>
+                <div class="field c-6"><label for="vacVal">Validade do lote</label><input id="vacVal" type="date" value="2028-05-01" required></div>
               </div>
             </div>
             <div class="panel-foot">
-              <button class="btn btn-primary" onclick="aplicarVacina()">Aplicar vacina</button>
+              <button type="submit" class="btn btn-primary">Aplicar vacina</button>
             </div>
-          </div>
+          </form>
         </div>
 
         <div class="panel">
@@ -629,7 +633,7 @@
             </div>
             <div class="inline-form">
               <input id="histAnimalId" type="number" value="1" placeholder="ID" aria-label="ID do animal">
-              <button class="btn btn-sm btn-primary" onclick="consultarHistoricoAnimal()">Buscar histórico</button>
+              <button type="button" class="btn btn-sm btn-primary" onclick="consultarHistoricoAnimal()">Buscar histórico</button>
             </div>
           </div>
         </div>
@@ -645,7 +649,7 @@
         <div class="panel">
           <div class="panel-head">
             <h2>Fila de operações</h2>
-            <button class="btn btn-sm btn-line" onclick="carregarIntegracoes()">Atualizar fila</button>
+            <button type="button" class="btn btn-sm btn-line" onclick="carregarIntegracoes()">Atualizar fila</button>
           </div>
           <div class="table-wrap">
             <table>
