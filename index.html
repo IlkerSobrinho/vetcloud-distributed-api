@@ -146,6 +146,7 @@
     }
     .field .opt { font-weight: 400; color: var(--ink-3); }
     .field-row { display: flex; gap: 8px; }
+    .hint { font-size: 12.5px; color: var(--ink-2); }
 
     input, select {
       width: 100%; min-width: 0; height: 40px; padding: 0 12px;
@@ -482,7 +483,7 @@
       <section class="pane" id="aba-animais" role="tabpanel" aria-labelledby="tab-animais" hidden>
         <div class="page-head">
           <h1>Animais e microchip</h1>
-          <p>Cadastre o animal vinculado ao tutor (Nome e CPF) e gerencie o microchip RFID. Testes 7 e 8.</p>
+          <p>Cadastre o animal vinculado ao tutor (pesquisando por Nome ou CPF) e gerencie o microchip RFID. Testes 7 e 8.</p>
         </div>
 
         <div class="cols cols-7-5">
@@ -504,10 +505,12 @@
                 <div class="field c-6"><label for="aDataNasc">Data de nascimento <span class="opt">(opcional)</span></label><input id="aDataNasc" type="date"></div>
                 <div class="field c-6"><label for="aIdadeEst">Idade estimada <span class="opt">(opcional)</span></label><input id="aIdadeEst" placeholder="Ex: 2 anos"></div>
                 <div class="field c-12">
-                  <label for="aTutorId">Tutor (Nome e CPF)</label>
+                  <label for="aTutorBusca">Tutor (pesquisar por nome ou CPF)</label>
+                  <input id="aTutorBusca" type="search" placeholder="Digite o nome ou CPF do tutor para filtrar..." oninput="filtrarSelectTutores()">
                   <select id="aTutorId" required>
                     <option value="">Cadastre um tutor primeiro...</option>
                   </select>
+                  <small id="aTutorContagem" class="hint"></small>
                 </div>
                 <div class="field c-6">
                   <label for="aEspecieId">Espécie</label>
@@ -718,6 +721,14 @@ function limparDigitos(v) {
   return String(v || "").replace(/\D/g, "");
 }
 
+function normalizarTexto(s) {
+  return String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function formatarCpf(cpf) {
   const n = limparDigitos(cpf);
   if (n.length !== 11) return cpf || "-";
@@ -805,19 +816,45 @@ window.addEventListener("unhandledrejection", e => {
   }, true);
 });
 
-// ---------- Preenchimento dos Selects (Nome + CPF) ----------
-function atualizarSelectTutores(lista) {
+// ---------- Preenchimento e Busca nos Selects (Nome + CPF) ----------
+function filtrarSelectTutores(listaBase = cacheTutores) {
   const sel = document.getElementById("aTutorId");
+  const inputBusca = document.getElementById("aTutorBusca");
+  const contagem = document.getElementById("aTutorContagem");
+  const termo = normalizarTexto(inputBusca ? inputBusca.value : "");
+  const termoDigitos = limparDigitos(inputBusca ? inputBusca.value : "");
   const valorAtual = sel.value;
-  if (!lista.length) {
+
+  if (!listaBase.length) {
     sel.innerHTML = '<option value="">Nenhum tutor cadastrado — cadastre na aba Tutores</option>';
+    if (contagem) contagem.textContent = "";
     return;
   }
-  sel.innerHTML = lista.map(t =>
+
+  const filtrados = !termo ? listaBase : listaBase.filter(t => {
+    const bateNome = normalizarTexto(t.nome_completo).includes(termo);
+    const bateCpf = termoDigitos.length > 0 && limparDigitos(t.cpf).includes(termoDigitos);
+    return bateNome || bateCpf;
+  });
+
+  if (!filtrados.length) {
+    sel.innerHTML = '<option value="">Nenhum tutor encontrado para essa busca</option>';
+    if (contagem) contagem.textContent = "0 tutores encontrados. Limpe a busca para ver todos.";
+    return;
+  }
+
+  sel.innerHTML = filtrados.map(t =>
     `<option value="${t.id}">${t.nome_completo} — CPF: ${formatarCpf(t.cpf)}</option>`
   ).join("");
-  if (valorAtual && lista.some(t => String(t.id) === String(valorAtual))) {
+
+  if (valorAtual && filtrados.some(t => String(t.id) === String(valorAtual))) {
     sel.value = valorAtual;
+  }
+
+  if (contagem) {
+    contagem.textContent = termo
+      ? `${filtrados.length} de ${listaBase.length} tutor(es) encontrado(s).`
+      : `${listaBase.length} tutor(es) disponível(is).`;
   }
 }
 
@@ -947,7 +984,7 @@ async function carregarTutores() {
   const r = await fetch(`${API_CLINICA}/tutores`);
   const lista = await r.json();
   cacheTutores = lista;
-  atualizarSelectTutores(lista);
+  filtrarSelectTutores(lista);
   const tbody = document.getElementById("tabelaTutores");
   tbody.innerHTML = lista.map(t => `
     <tr>
