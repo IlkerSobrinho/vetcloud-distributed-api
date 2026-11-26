@@ -3,16 +3,14 @@
 # COMO RODAR: uvicorn api_clinica:app --reload --port 8000
 # =============================================================================
 
-from datetime import datetime
+from datetime import datetime, date
 import hashlib
 import json
 from typing import Optional
 import requests
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from pydantic import BaseModel, Field, field_validator
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DO BANCO DA CLÍNICA E URL DO GOVERNO
@@ -27,6 +25,36 @@ Base = declarative_base()
 def gerar_hash_senha(senha: str) -> str:
     """Gera hash SHA-256 com salt fixo acadêmico para nunca salvar senha em texto puro."""
     return hashlib.sha256(f"sdm_salt_{senha}".encode("utf-8")).hexdigest()
+
+def validar_cpf_matematico(cpf: str) -> str:
+    """Limpa e valida CPF pelo cálculo oficial dos dígitos verificadores (módulo 11)."""
+    numeros = "".join(filter(str.isdigit, cpf))
+    if len(numeros) != 11 or numeros == numeros[0] * 11:
+        raise ValueError("CPF inválido. Informe 11 dígitos válidos (sem todos os números iguais).")
+
+    soma1 = sum(int(numeros[i]) * (10 - i) for i in range(9))
+    digito1 = (soma1 * 10) % 11
+    digito1 = 0 if digito1 == 10 else digito1
+
+    soma2 = sum(int(numeros[i]) * (11 - i) for i in range(10))
+    digito2 = (soma2 * 10) % 11
+    digito2 = 0 if digito2 == 10 else digito2
+
+    if int(numeros[9]) != digito1 or int(numeros[10]) != digito2:
+        raise ValueError("CPF inválido: dígitos verificadores não conferem.")
+    return numeros
+
+def validar_data_nao_futura(data_str: Optional[str]) -> Optional[str]:
+    """Impede cadastro de data de nascimento maior que a data atual."""
+    if not data_str:
+        return None
+    try:
+        data_informada = date.fromisoformat(data_str[:10])
+    except ValueError:
+        raise ValueError("Data de nascimento inválida. Use o formato AAAA-MM-DD.")
+    if data_informada > date.today():
+        raise ValueError("A data de nascimento não pode ser futura.")
+    return data_str[:10]
 
 # -----------------------------------------------------------------------------
 # 2. AS 10 TABELAS OBRIGATÓRIAS DO MODELO DE DADOS (Seção 6 do PDF)
@@ -190,6 +218,11 @@ class VeterinarioCreateSchema(BaseModel):
     situacao: Optional[str] = "ATIVO"
     senha_confirmada: Optional[bool] = False
 
+    @field_validator("cpf")
+    @classmethod
+    def checar_cpf(cls, v: str) -> str:
+        return validar_cpf_matematico(v)
+
 class EnderecoCreateSchema(BaseModel):
     cep: str
     logradouro: str
@@ -208,6 +241,16 @@ class TutorCreateSchema(BaseModel):
     telefone: str
     endereco: EnderecoCreateSchema
 
+    @field_validator("cpf")
+    @classmethod
+    def checar_cpf(cls, v: str) -> str:
+        return validar_cpf_matematico(v)
+
+    @field_validator("data_nascimento")
+    @classmethod
+    def checar_data_nascimento(cls, v: str) -> str:
+        return validar_data_nao_futura(v)
+
 class EspecieCreateSchema(BaseModel):
     nome: str
     descricao: Optional[str] = ""
@@ -223,10 +266,15 @@ class AnimalCreateSchema(BaseModel):
     idade_estimada: Optional[str] = None
     sexo: str
     cor: str
-    peso_atual: float
+    peso_atual: float = Field(..., gt=0)
     tutor_id: int
     especie_id: int
     raca_id: Optional[int] = None
+
+    @field_validator("data_nascimento")
+    @classmethod
+    def checar_data_nascimento(cls, v: Optional[str]) -> Optional[str]:
+        return validar_data_nao_futura(v)
 
 class MicrochipVinculoSchema(BaseModel):
     microchip_rfid: str
@@ -243,8 +291,8 @@ class ConsultaCreateSchema(BaseModel):
     diagnostico: Optional[str] = ""
     tratamento_prescrito: Optional[str] = ""
     prescricao_medicamentos: Optional[str] = ""
-    peso_registrado: Optional[float] = None
-    temperatura: Optional[float] = None
+    peso_registrado: Optional[float] = Field(default=None, gt=0)
+    temperatura: Optional[float] = Field(default=None, gt=0)
     observacoes: Optional[str] = ""
     situacao: Optional[str] = "REALIZADA"
 
@@ -523,7 +571,29 @@ def cadastrar_animal(dados: AnimalCreateSchema, db: Session = Depends(get_db)):
 
 @app.get("/api/animais")
 def listar_animais(db: Session = Depends(get_db)):
-    return db.query(AnimalDB).all()
+    animais = db.query(AnimalDB).all()
+    tutores = {t.id: t for t in db.query(TutorDB).all()}
+    resultado = []
+    for a in animais:
+        tutor = tutores.get(a.tutor_id)
+        resultado.append({
+            "id": a.id,
+            "nome": a.nome,
+            "data_nascimento": a.data_nascimento,
+            "idade_estimada": a.idade_estimada,
+            "sexo": a.sexo,
+            "cor": a.cor,
+            "peso_atual": a.peso_atual,
+            "tutor_id": a.tutor_id,
+            "tutor_nome": tutor.nome_completo if tutor else "Não informado",
+            "tutor_cpf": tutor.cpf if tutor else "",
+            "especie_id": a.especie_id,
+            "raca_id": a.raca_id,
+            "microchip_rfid": a.microchip_rfid,
+            "situacao": a.situacao,
+            "situacao_integracao_gov": a.situacao_integracao_gov
+        })
+    return resultado
 
 @app.get("/api/animais/{animal_id}")
 def obter_animal(animal_id: int, db: Session = Depends(get_db)):
