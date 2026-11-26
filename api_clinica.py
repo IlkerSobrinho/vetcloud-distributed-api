@@ -291,7 +291,7 @@ class AnimalCreateSchema(BaseModel):
     idade_estimada: Optional[str] = None
     sexo: str
     cor: str
-    peso_atual: float = Field(..., gt=0)
+    peso_atual: float = Field(..., ge=1, le=100)
     tutor_id: int
     especie_id: int
     raca_id: Optional[int] = None
@@ -318,7 +318,7 @@ class ConsultaCreateSchema(BaseModel):
     diagnostico: Optional[str] = ""
     tratamento_prescrito: Optional[str] = ""
     prescricao_medicamentos: Optional[str] = ""
-    peso_registrado: Optional[float] = Field(default=None, gt=0)
+    peso_registrado: Optional[float] = Field(default=None, ge=1, le=100)
     temperatura: Optional[float] = Field(default=None, gt=0)
     observacoes: Optional[str] = ""
     situacao: Optional[str] = "REALIZADA"
