@@ -10,7 +10,10 @@ from typing import Optional
 import requests
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO DO BANCO DA CLÍNICA E URL DO GOVERNO
@@ -22,9 +25,11 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 def gerar_hash_senha(senha: str) -> str:
     """Gera hash SHA-256 com salt fixo acadêmico para nunca salvar senha em texto puro."""
     return hashlib.sha256(f"sdm_salt_{senha}".encode("utf-8")).hexdigest()
+
 
 def validar_cpf_matematico(cpf: str) -> str:
     """Limpa e valida CPF pelo cálculo oficial dos dígitos verificadores (módulo 11)."""
@@ -44,6 +49,7 @@ def validar_cpf_matematico(cpf: str) -> str:
         raise ValueError("CPF inválido: dígitos verificadores não conferem.")
     return numeros
 
+
 def validar_data_nao_futura(data_str: Optional[str]) -> Optional[str]:
     """Impede cadastro de data de nascimento maior que a data atual."""
     if not data_str:
@@ -55,6 +61,7 @@ def validar_data_nao_futura(data_str: Optional[str]) -> Optional[str]:
     if data_informada > date.today():
         raise ValueError("A data de nascimento não pode ser futura.")
     return data_str[:10]
+
 
 # -----------------------------------------------------------------------------
 # 2. AS 10 TABELAS OBRIGATÓRIAS DO MODELO DE DADOS (Seção 6 do PDF)
@@ -71,6 +78,7 @@ class EnderecoDB(Base):
     uf = Column(String(2), nullable=False)
     codigo_ibge = Column(String(10), nullable=True)
 
+
 class TutorDB(Base):
     __tablename__ = "tutores"
     id = Column(Integer, primary_key=True, index=True)
@@ -83,12 +91,14 @@ class TutorDB(Base):
     data_cadastro = Column(DateTime, default=datetime.utcnow)
     situacao = Column(String(20), default="ATIVO")
 
+
 class EspecieDB(Base):
     __tablename__ = "especies"
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(80), unique=True, nullable=False)
     descricao = Column(String(255), nullable=True)
     situacao = Column(String(20), default="ATIVO")
+
 
 class RacaDB(Base):
     __tablename__ = "racas"
@@ -97,6 +107,7 @@ class RacaDB(Base):
     descricao = Column(String(255), nullable=True)
     especie_id = Column(Integer, ForeignKey("especies.id"), nullable=False)
     situacao = Column(String(20), default="ATIVO")
+
 
 class VeterinarioDB(Base):
     __tablename__ = "veterinarios"
@@ -112,8 +123,9 @@ class VeterinarioDB(Base):
     senha_confirmada = Column(Boolean, default=False)
     data_hora_confirmacao = Column(DateTime, nullable=True)
     data_cadastro = Column(DateTime, default=datetime.utcnow)
-    situacao = Column(String(20), default="ATIVO") # ATIVO ou INATIVO
+    situacao = Column(String(20), default="ATIVO")  # ATIVO ou INATIVO
     ultimo_acesso = Column(DateTime, nullable=True)
+
 
 class AnimalDB(Base):
     __tablename__ = "animais"
@@ -133,6 +145,7 @@ class AnimalDB(Base):
     situacao = Column(String(20), default="ATIVO")
     situacao_integracao_gov = Column(String(30), default="NAO_SINCRONIZADO")
 
+
 class VinculoMicrochipDB(Base):
     __tablename__ = "vinculos_microchip"
     id = Column(Integer, primary_key=True, index=True)
@@ -143,6 +156,7 @@ class VinculoMicrochipDB(Base):
     data_substituicao = Column(DateTime, nullable=True)
     motivo_substituicao = Column(String(255), nullable=True)
     ativo = Column(Boolean, default=True)
+
 
 class ConsultaDB(Base):
     __tablename__ = "consultas"
@@ -161,13 +175,14 @@ class ConsultaDB(Base):
     observacoes = Column(Text, nullable=True)
     situacao = Column(String(30), default="REALIZADA")
 
+
 class VacinaDB(Base):
     __tablename__ = "vacinas"
     id = Column(Integer, primary_key=True, index=True)
     animal_id = Column(Integer, ForeignKey("animais.id"), nullable=False)
     veterinario_id = Column(Integer, ForeignKey("veterinarios.id"), nullable=False)
     nome_vacina = Column(String(100), nullable=False)
-    tipo_vacina = Column(String(50), nullable=False) # Ex: ANTIRRABICA, V10, GRIPE
+    tipo_vacina = Column(String(50), nullable=False)  # Ex: ANTIRRABICA, V10, GRIPE
     indicador_antirrabica = Column(Boolean, default=False)
     fabricante = Column(String(100), nullable=False)
     numero_lote = Column(String(50), nullable=False)
@@ -179,6 +194,7 @@ class VacinaDB(Base):
     observacoes = Column(Text, nullable=True)
     situacao = Column(String(30), default="APLICADA")
 
+
 class IntegracaoGovernoDB(Base):
     __tablename__ = "integracoes_governo"
     id = Column(Integer, primary_key=True, index=True)
@@ -187,14 +203,16 @@ class IntegracaoGovernoDB(Base):
     tipo_operacao = Column(String(50), nullable=False)
     protocolo_externo = Column(String(64), nullable=True)
     chave_idempotencia = Column(String(64), unique=True, index=True, nullable=False)
-    situacao = Column(String(30), default="PENDENTE") # PENDENTE, ENVIADA, CONFIRMADA, FALHA
+    situacao = Column(String(30), default="PENDENTE")  # PENDENTE, ENVIADA, CONFIRMADA, FALHA
     data_hora_solicitacao = Column(DateTime, default=datetime.utcnow)
     data_hora_resposta = Column(DateTime, nullable=True)
     quantidade_tentativas = Column(Integer, default=0)
     mensagem_erro = Column(Text, nullable=True)
     payload_json = Column(Text, nullable=False)
 
+
 Base.metadata.create_all(bind=engine)
+
 
 # -----------------------------------------------------------------------------
 # 3. SCHEMAS PYDANTIC (VALIDAÇÃO DE ENTRADA)
@@ -203,9 +221,11 @@ class LoginSchema(BaseModel):
     email: str
     senha: str
 
+
 class ConfirmarSenhaSchema(BaseModel):
     email: str
     codigo_confirmacao: str
+
 
 class VeterinarioCreateSchema(BaseModel):
     nome_completo: str
@@ -223,6 +243,7 @@ class VeterinarioCreateSchema(BaseModel):
     def checar_cpf(cls, v: str) -> str:
         return validar_cpf_matematico(v)
 
+
 class EnderecoCreateSchema(BaseModel):
     cep: str
     logradouro: str
@@ -232,6 +253,7 @@ class EnderecoCreateSchema(BaseModel):
     cidade: str
     uf: str
     codigo_ibge: Optional[str] = ""
+
 
 class TutorCreateSchema(BaseModel):
     nome_completo: str
@@ -251,14 +273,17 @@ class TutorCreateSchema(BaseModel):
     def checar_data_nascimento(cls, v: str) -> str:
         return validar_data_nao_futura(v)
 
+
 class EspecieCreateSchema(BaseModel):
     nome: str
     descricao: Optional[str] = ""
+
 
 class RacaCreateSchema(BaseModel):
     nome: str
     descricao: Optional[str] = ""
     especie_id: int
+
 
 class AnimalCreateSchema(BaseModel):
     nome: str
@@ -276,10 +301,12 @@ class AnimalCreateSchema(BaseModel):
     def checar_data_nascimento(cls, v: Optional[str]) -> Optional[str]:
         return validar_data_nao_futura(v)
 
+
 class MicrochipVinculoSchema(BaseModel):
     microchip_rfid: str
     veterinario_id: int
     motivo_substituicao: Optional[str] = "Primeiro vínculo de microchip"
+
 
 class ConsultaCreateSchema(BaseModel):
     animal_id: int
@@ -296,11 +323,12 @@ class ConsultaCreateSchema(BaseModel):
     observacoes: Optional[str] = ""
     situacao: Optional[str] = "REALIZADA"
 
+
 class VacinaCreateSchema(BaseModel):
     animal_id: int
     veterinario_id: int
     nome_vacina: str
-    tipo_vacina: str # "ANTIRRABICA", "V10", "GRIPE", etc.
+    tipo_vacina: str  # "ANTIRRABICA", "V10", "GRIPE", etc.
     indicador_antirrabica: bool
     fabricante: str
     numero_lote: str
@@ -311,6 +339,7 @@ class VacinaCreateSchema(BaseModel):
     data_validade_lote: str
     observacoes: Optional[str] = ""
     situacao: Optional[str] = "APLICADA"
+
 
 # -----------------------------------------------------------------------------
 # 4. INICIALIZAÇÃO DO FASTAPI E SEEDS AUTOMÁTICOS PARA TESTE RÁPIDO
@@ -325,12 +354,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 @app.on_event("startup")
 def popular_dados_iniciais():
@@ -339,7 +370,7 @@ def popular_dados_iniciais():
     if db.query(VeterinarioDB).count() == 0:
         # 1. Veterinário Ativo e Confirmado (Para Teste #1)
         db.add(VeterinarioDB(
-            nome_completo="Dr. veterinário Ativo (Teste OK)",
+            nome_completo="Dr. Veterinário Ativo (Teste OK)",
             cpf="11111111111",
             numero_crmv="12345",
             uf_crmv="RJ",
@@ -390,6 +421,7 @@ def popular_dados_iniciais():
         db.commit()
     db.close()
 
+
 # -----------------------------------------------------------------------------
 # 5. ENDPOINTS: AUTENTICAÇÃO E VETERINÁRIOS (Seção 3.1 e 3.6 - Testes 1, 2, 3 e 4)
 # -----------------------------------------------------------------------------
@@ -402,7 +434,7 @@ def login_veterinario(credenciais: LoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Acesso bloqueado: Veterinário está INATIVO.")
     if not vet.senha_confirmada:
         raise HTTPException(status_code=403, detail="Acesso bloqueado: Senha ainda não foi confirmada.")
-    
+
     vet.ultimo_acesso = datetime.utcnow()
     db.commit()
     return {
@@ -415,6 +447,7 @@ def login_veterinario(credenciais: LoginSchema, db: Session = Depends(get_db)):
         }
     }
 
+
 @app.post("/api/auth/confirmar-senha")
 def confirmar_senha(dados: ConfirmarSenhaSchema, db: Session = Depends(get_db)):
     vet = db.query(VeterinarioDB).filter(VeterinarioDB.email == dados.email).first()
@@ -426,6 +459,7 @@ def confirmar_senha(dados: ConfirmarSenhaSchema, db: Session = Depends(get_db)):
     vet.data_hora_confirmacao = datetime.utcnow()
     db.commit()
     return {"mensagem": "Senha confirmada com sucesso! O profissional já pode realizar login."}
+
 
 @app.post("/api/veterinarios")
 def criar_veterinario(dados: VeterinarioCreateSchema, db: Session = Depends(get_db)):
@@ -448,9 +482,11 @@ def criar_veterinario(dados: VeterinarioCreateSchema, db: Session = Depends(get_
     db.refresh(novo)
     return novo
 
+
 @app.get("/api/veterinarios")
 def listar_veterinarios(db: Session = Depends(get_db)):
     return db.query(VeterinarioDB).all()
+
 
 # -----------------------------------------------------------------------------
 # 6. ENDPOINT: CONSULTA À API PÚBLICA VIACEP (Seção 3.3 - Teste 6)
@@ -479,6 +515,7 @@ def consultar_viacep(cep: str):
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=503, detail="Serviço ViaCEP indisponível no momento. Preencha manualmente.")
 
+
 # -----------------------------------------------------------------------------
 # 7. ENDPOINTS: TUTORES, ESPÉCIES E RAÇAS (Seção 3.2, 3.4 e 3.5 - Teste 5)
 # -----------------------------------------------------------------------------
@@ -489,7 +526,7 @@ def cadastrar_tutor(dados: TutorCreateSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="CPF inválido. Deve conter 11 dígitos.")
     if db.query(TutorDB).filter(TutorDB.cpf == cpf_limpo).first():
         raise HTTPException(status_code=409, detail="Erro: Já existe um tutor cadastrado com este CPF.")
-    
+
     novo_end = EnderecoDB(**dados.endereco.dict())
     db.add(novo_end)
     db.commit()
@@ -508,9 +545,11 @@ def cadastrar_tutor(dados: TutorCreateSchema, db: Session = Depends(get_db)):
     db.refresh(novo_tutor)
     return {"tutor": novo_tutor, "endereco": novo_end}
 
+
 @app.get("/api/tutores")
 def listar_tutores(db: Session = Depends(get_db)):
     return db.query(TutorDB).all()
+
 
 @app.get("/api/tutores/{tutor_id}")
 def obter_tutor(tutor_id: int, db: Session = Depends(get_db)):
@@ -520,6 +559,7 @@ def obter_tutor(tutor_id: int, db: Session = Depends(get_db)):
     end = db.query(EnderecoDB).filter(EnderecoDB.id == tutor.endereco_id).first()
     return {"tutor": tutor, "endereco": end}
 
+
 @app.post("/api/especies")
 def criar_especie(dados: EspecieCreateSchema, db: Session = Depends(get_db)):
     nova = EspecieDB(**dados.dict())
@@ -528,9 +568,11 @@ def criar_especie(dados: EspecieCreateSchema, db: Session = Depends(get_db)):
     db.refresh(nova)
     return nova
 
+
 @app.get("/api/especies")
 def listar_especies(db: Session = Depends(get_db)):
     return db.query(EspecieDB).all()
+
 
 @app.post("/api/racas")
 def criar_raca(dados: RacaCreateSchema, db: Session = Depends(get_db)):
@@ -542,9 +584,11 @@ def criar_raca(dados: RacaCreateSchema, db: Session = Depends(get_db)):
     db.refresh(nova)
     return nova
 
+
 @app.get("/api/racas")
 def listar_racas(db: Session = Depends(get_db)):
     return db.query(RacaDB).all()
+
 
 # -----------------------------------------------------------------------------
 # 8. ENDPOINTS: ANIMAIS E VÍNCULO DE MICROCHIP RFID (Seção 3.7 - Testes 7, 8, 11)
@@ -556,18 +600,19 @@ def cadastrar_animal(dados: AnimalCreateSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tutor não encontrado. Cadastre o tutor primeiro.")
     if not db.query(EspecieDB).filter(EspecieDB.id == dados.especie_id).first():
         raise HTTPException(status_code=404, detail="Espécie não encontrada.")
-    
+
     # Valida compatibilidade entre Raça e Espécie (Seção 3.5)
     if dados.raca_id:
         raca = db.query(RacaDB).filter(RacaDB.id == dados.raca_id).first()
         if not raca or raca.especie_id != dados.especie_id:
             raise HTTPException(status_code=400, detail="A raça selecionada não pertence à espécie informada.")
-    
+
     novo_animal = AnimalDB(**dados.dict())
     db.add(novo_animal)
     db.commit()
     db.refresh(novo_animal)
     return novo_animal
+
 
 @app.get("/api/animais")
 def listar_animais(db: Session = Depends(get_db)):
@@ -595,6 +640,7 @@ def listar_animais(db: Session = Depends(get_db)):
         })
     return resultado
 
+
 @app.get("/api/animais/{animal_id}")
 def obter_animal(animal_id: int, db: Session = Depends(get_db)):
     animal = db.query(AnimalDB).filter(AnimalDB.id == animal_id).first()
@@ -604,22 +650,23 @@ def obter_animal(animal_id: int, db: Session = Depends(get_db)):
     integracoes = db.query(IntegracaoGovernoDB).filter(IntegracaoGovernoDB.animal_id == animal_id).all()
     return {"animal": animal, "historico_microchips": historico_chips, "integracoes_governo": integracoes}
 
+
 @app.post("/api/animais/{animal_id}/microchip")
 def vincular_ou_substituir_microchip(animal_id: int, dados: MicrochipVinculoSchema, db: Session = Depends(get_db)):
     animal = db.query(AnimalDB).filter(AnimalDB.id == animal_id).first()
     if not animal:
         raise HTTPException(status_code=404, detail="Animal não encontrado.")
-    
+
     # Verifica se o veterinário está ativo e confirmado (Regra 3.7.3)
     vet = db.query(VeterinarioDB).filter(VeterinarioDB.id == dados.veterinario_id).first()
     if not vet or vet.situacao != "ATIVO" or not vet.senha_confirmada:
         raise HTTPException(status_code=403, detail="Apenas veterinário ativo e confirmado pode vincular microchip.")
-    
+
     # Verifica se o microchip já está em uso em qualquer animal ou histórico (Teste #8)
     em_uso = db.query(AnimalDB).filter(AnimalDB.microchip_rfid == dados.microchip_rfid).first()
     if em_uso:
         raise HTTPException(status_code=409, detail="Rejeitado: Este código de microchip RFID já está vinculado a um animal.")
-    
+
     # Se o animal já tinha um microchip anterior, preserva no histórico como substituído (Regra 3.7.5)
     vinculo_atual = db.query(VinculoMicrochipDB).filter(
         VinculoMicrochipDB.animal_id == animal_id,
@@ -668,6 +715,7 @@ def vincular_ou_substituir_microchip(animal_id: int, dados: MicrochipVinculoSche
     db.commit()
     return {"mensagem": "Microchip vinculado com sucesso!", "microchip_rfid": animal.microchip_rfid, "situacao_gov": animal.situacao_integracao_gov}
 
+
 # -----------------------------------------------------------------------------
 # 9. ENDPOINTS: CONSULTAS CLÍNICAS (Seção 3.8 - Teste 9)
 # -----------------------------------------------------------------------------
@@ -681,9 +729,11 @@ def registrar_consulta(dados: ConsultaCreateSchema, db: Session = Depends(get_db
     db.refresh(nova)
     return nova
 
+
 @app.get("/api/animais/{animal_id}/consultas")
 def historico_consultas(animal_id: int, db: Session = Depends(get_db)):
     return db.query(ConsultaDB).filter(ConsultaDB.animal_id == animal_id).all()
+
 
 # -----------------------------------------------------------------------------
 # 10. ENDPOINTS: VACINAS E PREMISSA OBRIGATÓRIA ANTIRRÁBICA (Seções 3.9, 4 e 5)
@@ -707,6 +757,7 @@ def tentar_enviar_integracao_gov(integracao: IntegracaoGovernoDB, db: Session):
         integracao.situacao = "PENDENTE"
         integracao.mensagem_erro = f"Falha de comunicação / API Governo Indisponível: {str(erro)}"
     db.commit()
+
 
 @app.post("/api/vacinas")
 def registrar_vacina(dados: VacinaCreateSchema, db: Session = Depends(get_db)):
@@ -775,11 +826,13 @@ def registrar_vacina(dados: VacinaCreateSchema, db: Session = Depends(get_db)):
 
     return {"vacina_registrada": nova_vacina, "comunicacao_governo": resultado_integracao}
 
+
 @app.get("/api/animais/{animal_id}/vacinas")
 def historico_vacinas(animal_id: int, db: Session = Depends(get_db)):
     vacinas = db.query(VacinaDB).filter(VacinaDB.animal_id == animal_id).all()
     proximas_doses = [v for v in vacinas if v.data_proxima_dose]
     return {"historico_vacinas": vacinas, "proximas_doses_previstas": proximas_doses}
+
 
 # -----------------------------------------------------------------------------
 # 11. ENDPOINTS: CONTROLE DE INTEGRAÇÕES E REENVIO DE PENDÊNCIAS (Seção 5 - Testes 14, 15, 16)
@@ -787,6 +840,7 @@ def historico_vacinas(animal_id: int, db: Session = Depends(get_db)):
 @app.get("/api/integracoes")
 def listar_integracoes(db: Session = Depends(get_db)):
     return db.query(IntegracaoGovernoDB).all()
+
 
 @app.post("/api/integracoes/reenviar-pendentes")
 def reenviar_todas_pendentes(db: Session = Depends(get_db)):
@@ -802,18 +856,19 @@ def reenviar_todas_pendentes(db: Session = Depends(get_db)):
         })
     return {"total_processadas": len(processadas), "resultado": processadas}
 
+
 # -----------------------------------------------------------------------------
 # 12. ENTREGA DA INTERFACE WEB E GATEWAY PARA NUVEM (RENDER / PORTFÓLIO)
 # -----------------------------------------------------------------------------
-from fastapi.responses import FileResponse
-
 @app.get("/", include_in_schema=False)
 def entregar_interface_web():
     """Entrega o index.html direto na rota raiz (/) para abrir no PC ou celular."""
     return FileResponse("index.html")
 
+
 class SimuladorProxySchema(BaseModel):
     indisponivel: bool
+
 
 @app.post("/api/governo-status")
 def alterar_status_governo_via_gateway(dados: SimuladorProxySchema):
@@ -830,6 +885,7 @@ def alterar_status_governo_via_gateway(dados: SimuladorProxySchema):
             status_code=503,
             detail=f"Erro ao comunicar com a API Governamental (Porta 8001): {str(erro)}"
         )
+
 
 @app.get("/api/governo-status")
 def consultar_status_governo_via_gateway():
