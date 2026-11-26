@@ -129,8 +129,8 @@
 
     .group + .group { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
     .group > h3 { margin-bottom: 14px; font-size: 14px; font-weight: 650; }
-    .inline-form { display: flex; align-items: center; gap: 8px; }
-    .inline-form input { width: 110px; height: 34px; }
+    .inline-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .inline-form select { min-width: 280px; width: auto; max-width: 100%; height: 34px; }
 
     /* ---------- Formulários ---------- */
     .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
@@ -203,7 +203,6 @@
     td { padding: 12px 16px; border-bottom: 1px solid #E8EFED; vertical-align: middle; }
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr:hover { background: #F8FBFA; }
-    td.id { font-weight: 600; font-variant-numeric: tabular-nums; }
     td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
     td.empty { padding: 32px 16px; text-align: center; color: var(--ink-2); }
     code, .mono { font-family: var(--mono); font-size: 12.5px; }
@@ -245,6 +244,7 @@
     @media (max-width: 760px) {
       .grid > [class*="c-"] { grid-column: span 12; }
       .grid > .c-2, .grid > .c-3, .grid > .c-4 { grid-column: span 6; }
+      .inline-form select { min-width: 0; width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; }
@@ -285,7 +285,7 @@
       <button type="button" role="tab" id="tab-animais" aria-controls="aba-animais" aria-selected="false" tabindex="-1" onclick="carregarDadosAnimais()">
         <svg class="ic"><use href="#i-paw"/></svg>Animais e microchip
       </button>
-      <button type="button" role="tab" id="tab-clinica" aria-controls="aba-clinica" aria-selected="false" tabindex="-1">
+      <button type="button" role="tab" id="tab-clinica" aria-controls="aba-clinica" aria-selected="false" tabindex="-1" onclick="carregarDadosAnimais()">
         <svg class="ic"><use href="#i-pulse"/></svg>Consultas e vacinas
       </button>
       <button type="button" role="tab" id="tab-governo" aria-controls="aba-governo" aria-selected="false" tabindex="-1" onclick="carregarIntegracoes()">
@@ -296,7 +296,7 @@
     <div class="side-foot">
       <div class="side-block session">
         <h2>Sessão</h2>
-        <span id="statusLogado" class="chip chip--warn">Não autenticado (vet. ID 1 padrão)</span>
+        <span id="statusLogado" class="chip chip--warn">Não autenticado (vet. padrão)</span>
       </div>
       <div class="side-block services-block">
         <h2>Serviços</h2>
@@ -393,7 +393,7 @@
             <div class="panel-body">
               <div class="grid">
                 <div class="field c-7"><label for="vNome">Nome completo</label><input id="vNome" required></div>
-                <div class="field c-5"><label for="vCpf">CPF</label><input id="vCpf" placeholder="11 dígitos" required></div>
+                <div class="field c-5"><label for="vCpf">CPF</label><input id="vCpf" placeholder="11 dígitos válidos" required></div>
                 <div class="field c-4"><label for="vCrmv">Nº do CRMV</label><input id="vCrmv" required></div>
                 <div class="field c-2"><label for="vUfCrmv">UF</label><input id="vUfCrmv" value="RJ" required></div>
                 <div class="field c-6"><label for="vTel">Telefone</label><input id="vTel" required></div>
@@ -423,7 +423,7 @@
       <section class="pane" id="aba-tutores" role="tabpanel" aria-labelledby="tab-tutores" hidden>
         <div class="page-head">
           <h1>Tutores e ViaCEP</h1>
-          <p>Cadastre o tutor com o endereço preenchido automaticamente pelo CEP. Testes 5 e 6.</p>
+          <p>Cadastre o tutor com CPF válido e endereço preenchido automaticamente pelo CEP. Testes 5 e 6.</p>
         </div>
 
         <form class="panel" onsubmit="event.preventDefault(); salvarTutor()">
@@ -433,7 +433,7 @@
               <h3>Dados pessoais</h3>
               <div class="grid">
                 <div class="field c-5"><label for="tNome">Nome completo</label><input id="tNome" placeholder="Ex: Maria Santos" required></div>
-                <div class="field c-4"><label for="tCpf">CPF (único)</label><input id="tCpf" placeholder="Somente números" required></div>
+                <div class="field c-4"><label for="tCpf">CPF (único e válido)</label><input id="tCpf" placeholder="Somente números" required></div>
                 <div class="field c-3"><label for="tNasc">Data de nascimento</label><input id="tNasc" type="date" required></div>
                 <div class="field c-6"><label for="tEmail">E-mail</label><input id="tEmail" type="email" placeholder="email@dominio.com" required></div>
                 <div class="field c-6"><label for="tTelefone">Telefone</label><input id="tTelefone" placeholder="(21) 99999-9999" required></div>
@@ -471,8 +471,8 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>ID</th><th>Nome completo</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Situação</th></tr></thead>
-              <tbody id="tabelaTutores"><tr><td colspan="6" class="empty">Use Atualizar lista para carregar os tutores.</td></tr></tbody>
+              <thead><tr><th>Nome completo</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Situação</th></tr></thead>
+              <tbody id="tabelaTutores"><tr><td colspan="5" class="empty">Use Atualizar lista para carregar os tutores.</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -482,7 +482,7 @@
       <section class="pane" id="aba-animais" role="tabpanel" aria-labelledby="tab-animais" hidden>
         <div class="page-head">
           <h1>Animais e microchip</h1>
-          <p>Cadastre o animal e vincule ou substitua o microchip RFID. Testes 7 e 8.</p>
+          <p>Cadastre o animal vinculado ao tutor (Nome e CPF) e gerencie o microchip RFID. Testes 7 e 8.</p>
         </div>
 
         <div class="cols cols-7-5">
@@ -490,7 +490,7 @@
             <div class="panel-head"><h2>Cadastrar animal</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-6"><label for="aNome">Nome do animal</label><input id="aNome" placeholder="Ex: Rex, Pentelho" required></div>
+                <div class="field c-6"><label for="aNome">Nome do animal</label><input id="aNome" placeholder="Ex: Rex, Pretinha" required></div>
                 <div class="field c-6">
                   <label for="aSexo">Sexo</label>
                   <select id="aSexo">
@@ -500,18 +500,23 @@
                   </select>
                 </div>
                 <div class="field c-6"><label for="aCor">Cor / pelagem</label><input id="aCor" placeholder="Ex: Caramelo, preto" required></div>
-                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" step="0.1" value="10.5" required></div>
+                <div class="field c-6"><label for="aPeso">Peso atual (kg)</label><input id="aPeso" type="number" min="0.01" step="0.1" value="10.5" required></div>
                 <div class="field c-6"><label for="aDataNasc">Data de nascimento <span class="opt">(opcional)</span></label><input id="aDataNasc" type="date"></div>
                 <div class="field c-6"><label for="aIdadeEst">Idade estimada <span class="opt">(opcional)</span></label><input id="aIdadeEst" placeholder="Ex: 2 anos"></div>
-                <div class="field c-4"><label for="aTutorId">ID do tutor</label><input id="aTutorId" type="number" value="1" required></div>
-                <div class="field c-8">
+                <div class="field c-12">
+                  <label for="aTutorId">Tutor (Nome e CPF)</label>
+                  <select id="aTutorId" required>
+                    <option value="">Cadastre um tutor primeiro...</option>
+                  </select>
+                </div>
+                <div class="field c-6">
                   <label for="aEspecieId">Espécie</label>
                   <select id="aEspecieId">
                     <option value="1">1 - Canina (cão)</option>
                     <option value="2">2 - Felina (gato)</option>
                   </select>
                 </div>
-                <div class="field c-12">
+                <div class="field c-6">
                   <label for="aRacaId">Raça (compatível com a espécie)</label>
                   <select id="aRacaId">
                     <option value="1">1 - SRD (cão)</option>
@@ -535,7 +540,12 @@
             </div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-12"><label for="mAnimalId">ID do animal</label><input id="mAnimalId" type="number" value="1" required></div>
+                <div class="field c-12">
+                  <label for="mAnimalId">Animal (Pet e Tutor)</label>
+                  <select id="mAnimalId" required>
+                    <option value="">Cadastre um animal primeiro...</option>
+                  </select>
+                </div>
                 <div class="field c-12"><label for="mCodigo">Código único do microchip</label><input id="mCodigo" placeholder="Ex: RFID-BR-987654" required></div>
                 <div class="field c-12"><label for="mMotivo">Motivo <span class="opt">(para substituição de chip antigo)</span></label><input id="mMotivo" value="Implantação inicial de microchip"></div>
               </div>
@@ -553,8 +563,8 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>ID</th><th>Nome</th><th>Sexo</th><th>Cor</th><th>Peso</th><th>Tutor</th><th>Microchip RFID</th><th>Governo</th></tr></thead>
-              <tbody id="tabelaAnimais"><tr><td colspan="8" class="empty">Use Atualizar lista para carregar os animais.</td></tr></tbody>
+              <thead><tr><th>Nome</th><th>Sexo</th><th>Cor</th><th>Peso</th><th>Tutor (Nome e CPF)</th><th>Microchip RFID</th><th>Governo</th></tr></thead>
+              <tbody id="tabelaAnimais"><tr><td colspan="7" class="empty">Use Atualizar lista para carregar os animais.</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -572,8 +582,13 @@
             <div class="panel-head"><h2>Registrar consulta</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-4"><label for="cAnimalId">ID do animal</label><input id="cAnimalId" type="number" value="1" required></div>
-                <div class="field c-8"><label for="cDataHora">Data e hora</label><input id="cDataHora" type="datetime-local" value="2026-11-01T10:00" required></div>
+                <div class="field c-12">
+                  <label for="cAnimalId">Animal (Pet e Tutor)</label>
+                  <select id="cAnimalId" required>
+                    <option value="">Cadastre um animal primeiro...</option>
+                  </select>
+                </div>
+                <div class="field c-6"><label for="cDataHora">Data e hora</label><input id="cDataHora" type="datetime-local" value="2026-11-01T10:00" required></div>
                 <div class="field c-6">
                   <label for="cSituacao">Situação</label>
                   <select id="cSituacao">
@@ -582,13 +597,13 @@
                     <option value="CANCELADA">Cancelada</option>
                   </select>
                 </div>
-                <div class="field c-6"><label for="cMotivo">Motivo do atendimento</label><input id="cMotivo" placeholder="Ex: Check-up anual" required></div>
+                <div class="field c-12"><label for="cMotivo">Motivo do atendimento</label><input id="cMotivo" placeholder="Ex: Check-up anual" required></div>
                 <div class="field c-6"><label for="cSintomas">Sintomas observados</label><input id="cSintomas"></div>
                 <div class="field c-6"><label for="cDiagnostico">Diagnóstico</label><input id="cDiagnostico"></div>
                 <div class="field c-6"><label for="cTratamento">Tratamento prescrito</label><input id="cTratamento"></div>
                 <div class="field c-6"><label for="cPrescricao">Medicamentos prescritos</label><input id="cPrescricao"></div>
-                <div class="field c-6"><label for="cPeso">Peso na consulta (kg)</label><input id="cPeso" type="number" step="0.1" value="10.5"></div>
-                <div class="field c-6"><label for="cTemp">Temperatura (°C)</label><input id="cTemp" type="number" step="0.1" value="38.5"></div>
+                <div class="field c-6"><label for="cPeso">Peso na consulta (kg)</label><input id="cPeso" type="number" min="0.01" step="0.1" value="10.5"></div>
+                <div class="field c-6"><label for="cTemp">Temperatura (°C)</label><input id="cTemp" type="number" min="30" max="45" step="0.1" value="38.5"></div>
               </div>
             </div>
             <div class="panel-foot">
@@ -600,8 +615,13 @@
             <div class="panel-head"><h2>Registrar vacina</h2></div>
             <div class="panel-body">
               <div class="grid">
-                <div class="field c-4"><label for="vacAnimalId">ID do animal</label><input id="vacAnimalId" type="number" value="1" required></div>
-                <div class="field c-8">
+                <div class="field c-12">
+                  <label for="vacAnimalId">Animal (Pet e Tutor)</label>
+                  <select id="vacAnimalId" required>
+                    <option value="">Cadastre um animal primeiro...</option>
+                  </select>
+                </div>
+                <div class="field c-12">
                   <label for="vacTipo">Tipo de vacina</label>
                   <select id="vacTipo">
                     <option value="ANTIRRABICA">Antirrábica (comunicada ao governo)</option>
@@ -632,7 +652,9 @@
               <p>Consultas e vacinas aparecem no console, no rodapé da página.</p>
             </div>
             <div class="inline-form">
-              <input id="histAnimalId" type="number" value="1" placeholder="ID" aria-label="ID do animal">
+              <select id="histAnimalId" aria-label="Selecionar animal">
+                <option value="">Selecione um animal...</option>
+              </select>
               <button type="button" class="btn btn-sm btn-primary" onclick="consultarHistoricoAnimal()">Buscar histórico</button>
             </div>
           </div>
@@ -653,8 +675,8 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>ID</th><th>Animal</th><th>Vacina</th><th>Operação</th><th>Situação</th><th>Protocolo do governo</th><th>Tentativas</th><th>Chave de idempotência</th><th>Erro</th></tr></thead>
-              <tbody id="tabelaIntegracoes"><tr><td colspan="9" class="empty">Use Atualizar fila para carregar as operações.</td></tr></tbody>
+              <thead><tr><th>Animal (Tutor)</th><th>Vacina</th><th>Operação</th><th>Situação</th><th>Protocolo do governo</th><th>Tentativas</th><th>Chave de idempotência</th><th>Erro</th></tr></thead>
+              <tbody id="tabelaIntegracoes"><tr><td colspan="8" class="empty">Use Atualizar fila para carregar as operações.</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -682,6 +704,46 @@
 const BASE_URL = window.location.protocol === "file:" ? "http://localhost:8000" : window.location.origin;
 const API_CLINICA = `${BASE_URL}/api`;
 let vetLogadoId = 1;
+let cacheTutores = [];
+let cacheAnimais = [];
+
+// ---------- Validadores e Formatação ----------
+const hojeISO = () => {
+  const d = new Date();
+  const off = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - off).toISOString().slice(0, 10);
+};
+
+function limparDigitos(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+
+function formatarCpf(cpf) {
+  const n = limparDigitos(cpf);
+  if (n.length !== 11) return cpf || "-";
+  return n.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
+function validarCpf(cpf) {
+  const n = limparDigitos(cpf);
+  if (n.length !== 11 || /^(\d)\1{10}$/.test(n)) return false;
+
+  let s1 = 0;
+  for (let i = 0; i < 9; i++) s1 += Number(n[i]) * (10 - i);
+  let d1 = (s1 * 10) % 11;
+  if (d1 === 10) d1 = 0;
+  if (d1 !== Number(n[9])) return false;
+
+  let s2 = 0;
+  for (let i = 0; i < 10; i++) s2 += Number(n[i]) * (11 - i);
+  let d2 = (s2 * 10) % 11;
+  if (d2 === 10) d2 = 0;
+  return d2 === Number(n[10]);
+}
+
+function ehDataFutura(dataStr) {
+  return Boolean(dataStr) && dataStr > hojeISO();
+}
 
 // ---------- Interface ----------
 const abas = [...document.querySelectorAll('#menuAbas [role="tab"]')];
@@ -719,8 +781,8 @@ function mostrarLog(titulo, dados, falha = false) {
     `[${new Date().toLocaleTimeString()}] ${titulo}:\n` + JSON.stringify(dados, null, 2);
   const chip = document.getElementById("consoleStatus");
   const m = titulo.match(/HTTP (\d{3})/);
-  if (falha) definirChip(chip, "bad", "Sem resposta");
-  else if (m) definirChip(chip, Number(m[1]) < 400 ? "ok" : "bad", `HTTP ${m[1]}`);
+  if (m) definirChip(chip, Number(m[1]) < 400 ? "ok" : "bad", `HTTP ${m[1]}`);
+  else if (falha) definirChip(chip, "bad", "Sem resposta");
   else definirChip(chip, "ok", "Resposta recebida");
 }
 
@@ -735,7 +797,6 @@ function alternarConsole() {
   painel.querySelector(".console-toggle").setAttribute("aria-expanded", !recolhido);
 }
 
-// Falhas de rede (API fora do ar, CORS, etc.) aparecem no console em vez de passarem em silêncio
 window.addEventListener("unhandledrejection", e => {
   mostrarLog("Falha de comunicação", {
     erro: String((e.reason && e.reason.message) || e.reason),
@@ -743,6 +804,42 @@ window.addEventListener("unhandledrejection", e => {
     dica: "Confirme se o servidor da clínica está rodando."
   }, true);
 });
+
+// ---------- Preenchimento dos Selects (Nome + CPF) ----------
+function atualizarSelectTutores(lista) {
+  const sel = document.getElementById("aTutorId");
+  const valorAtual = sel.value;
+  if (!lista.length) {
+    sel.innerHTML = '<option value="">Nenhum tutor cadastrado — cadastre na aba Tutores</option>';
+    return;
+  }
+  sel.innerHTML = lista.map(t =>
+    `<option value="${t.id}">${t.nome_completo} — CPF: ${formatarCpf(t.cpf)}</option>`
+  ).join("");
+  if (valorAtual && lista.some(t => String(t.id) === String(valorAtual))) {
+    sel.value = valorAtual;
+  }
+}
+
+function atualizarSelectAnimais(lista) {
+  const ids = ["mAnimalId", "cAnimalId", "vacAnimalId", "histAnimalId"];
+  ids.forEach(selectId => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const valorAtual = sel.value;
+    if (!lista.length) {
+      sel.innerHTML = '<option value="">Nenhum animal cadastrado — cadastre na aba Animais</option>';
+      return;
+    }
+    sel.innerHTML = lista.map(a => {
+      const tutorInfo = a.tutor_nome ? `${a.tutor_nome} (${formatarCpf(a.tutor_cpf)})` : "Tutor não informado";
+      return `<option value="${a.id}">${a.nome} — Tutor: ${tutorInfo}</option>`;
+    }).join("");
+    if (valorAtual && lista.some(a => String(a.id) === String(valorAtual))) {
+      sel.value = valorAtual;
+    }
+  });
+}
 
 // 1. AUTENTICAÇÃO E VETERINÁRIOS
 async function fazerLogin() {
@@ -755,7 +852,7 @@ async function fazerLogin() {
   const d = await r.json();
   if (r.ok) {
     vetLogadoId = d.veterinario.id;
-    definirChip(document.getElementById("statusLogado"), "ok", `Logado: ${d.veterinario.nome_completo} (ID: ${vetLogadoId})`);
+    definirChip(document.getElementById("statusLogado"), "ok", `Logado: ${d.veterinario.nome_completo}`);
   }
   mostrarLog(`Login Veterinário (HTTP ${r.status})`, d);
 }
@@ -771,9 +868,14 @@ async function confirmarSenhaVet() {
 }
 
 async function cadastrarVeterinario() {
+  const cpf = document.getElementById("vCpf").value;
+  if (!validarCpf(cpf)) {
+    mostrarLog("Validação de Veterinário (HTTP 422)", { erro: "CPF inválido. Informe um CPF válido (cálculo módulo 11)." }, true);
+    return;
+  }
   const payload = {
     nome_completo: document.getElementById("vNome").value,
-    cpf: document.getElementById("vCpf").value,
+    cpf: limparDigitos(cpf),
     numero_crmv: document.getElementById("vCrmv").value,
     uf_crmv: document.getElementById("vUfCrmv").value,
     email: document.getElementById("vEmail").value,
@@ -804,10 +906,22 @@ async function buscarCep() {
 }
 
 async function salvarTutor() {
+  const cpf = document.getElementById("tCpf").value;
+  const dataNasc = document.getElementById("tNasc").value;
+
+  if (!validarCpf(cpf)) {
+    mostrarLog("Validação de Tutor (HTTP 422)", { erro: "CPF inválido. Os dígitos verificadores não conferem." }, true);
+    return;
+  }
+  if (ehDataFutura(dataNasc)) {
+    mostrarLog("Validação de Tutor (HTTP 422)", { erro: "A data de nascimento do tutor não pode ser futura." }, true);
+    return;
+  }
+
   const payload = {
     nome_completo: document.getElementById("tNome").value,
-    cpf: document.getElementById("tCpf").value,
-    data_nascimento: document.getElementById("tNasc").value,
+    cpf: limparDigitos(cpf),
+    data_nascimento: dataNasc,
     email: document.getElementById("tEmail").value,
     telefone: document.getElementById("tTelefone").value,
     endereco: {
@@ -832,29 +946,47 @@ async function salvarTutor() {
 async function carregarTutores() {
   const r = await fetch(`${API_CLINICA}/tutores`);
   const lista = await r.json();
+  cacheTutores = lista;
+  atualizarSelectTutores(lista);
   const tbody = document.getElementById("tabelaTutores");
   tbody.innerHTML = lista.map(t => `
     <tr>
-      <td class="id">${t.id}</td>
-      <td>${t.nome_completo}</td>
-      <td class="num">${t.cpf}</td>
+      <td><strong>${t.nome_completo}</strong></td>
+      <td class="num mono">${formatarCpf(t.cpf)}</td>
       <td>${t.email}</td>
       <td class="num">${t.telefone}</td>
       <td><span class="chip ${/^ativ/i.test(t.situacao) ? 'chip--ok' : ''}">${rotulo(t.situacao)}</span></td>
     </tr>
-  `).join("") || '<tr><td colspan="6" class="empty">Nenhum tutor cadastrado ainda.</td></tr>';
+  `).join("") || '<tr><td colspan="5" class="empty">Nenhum tutor cadastrado ainda.</td></tr>';
 }
 
 // 3. ANIMAIS E MICROCHIP
 async function salvarAnimal() {
+  const tutorId = document.getElementById("aTutorId").value;
+  const peso = parseFloat(document.getElementById("aPeso").value);
+  const dataNasc = document.getElementById("aDataNasc").value || null;
+
+  if (!tutorId) {
+    mostrarLog("Validação de Animal (HTTP 400)", { erro: "Cadastre e selecione um tutor (Nome e CPF) antes de cadastrar o animal." }, true);
+    return;
+  }
+  if (isNaN(peso) || peso <= 0) {
+    mostrarLog("Validação de Animal (HTTP 422)", { erro: "O peso atual deve ser maior que zero." }, true);
+    return;
+  }
+  if (ehDataFutura(dataNasc)) {
+    mostrarLog("Validação de Animal (HTTP 422)", { erro: "A data de nascimento do animal não pode ser futura." }, true);
+    return;
+  }
+
   const payload = {
     nome: document.getElementById("aNome").value,
-    data_nascimento: document.getElementById("aDataNasc").value || null,
+    data_nascimento: dataNasc,
     idade_estimada: document.getElementById("aIdadeEst").value || null,
     sexo: document.getElementById("aSexo").value,
     cor: document.getElementById("aCor").value,
-    peso_atual: parseFloat(document.getElementById("aPeso").value),
-    tutor_id: parseInt(document.getElementById("aTutorId").value),
+    peso_atual: peso,
+    tutor_id: parseInt(tutorId),
     especie_id: parseInt(document.getElementById("aEspecieId").value),
     raca_id: parseInt(document.getElementById("aRacaId").value)
   };
@@ -868,6 +1000,10 @@ async function salvarAnimal() {
 
 async function vincularChip() {
   const id = document.getElementById("mAnimalId").value;
+  if (!id) {
+    mostrarLog("Validação de Microchip (HTTP 400)", { erro: "Selecione um animal cadastrado." }, true);
+    return;
+  }
   const payload = {
     microchip_rfid: document.getElementById("mCodigo").value,
     veterinario_id: vetLogadoId,
@@ -882,27 +1018,47 @@ async function vincularChip() {
 }
 
 async function carregarDadosAnimais() {
+  await carregarTutores();
   const r = await fetch(`${API_CLINICA}/animais`);
   const lista = await r.json();
+  cacheAnimais = lista;
+  atualizarSelectAnimais(lista);
   const tbody = document.getElementById("tabelaAnimais");
   tbody.innerHTML = lista.map(a => `
     <tr>
-      <td class="id">${a.id}</td>
-      <td>${a.nome}</td>
+      <td><strong>${a.nome}</strong></td>
       <td>${a.sexo}</td>
       <td>${a.cor}</td>
       <td class="num">${a.peso_atual} kg</td>
-      <td class="num">Tutor #${a.tutor_id}</td>
+      <td>
+        <strong>${a.tutor_nome || "Não informado"}</strong><br>
+        <span class="muted mono">${formatarCpf(a.tutor_cpf)}</span>
+      </td>
       <td>${a.microchip_rfid ? `<code>${a.microchip_rfid}</code>` : '<span class="muted">Sem chip</span>'}</td>
       <td><span class="chip ${a.situacao_integracao_gov === 'SINCRONIZADO' ? 'chip--ok' : ''}">${rotulo(a.situacao_integracao_gov)}</span></td>
     </tr>
-  `).join("") || '<tr><td colspan="8" class="empty">Nenhum animal cadastrado ainda.</td></tr>';
+  `).join("") || '<tr><td colspan="7" class="empty">Nenhum animal cadastrado ainda.</td></tr>';
 }
 
 // 4. CONSULTAS E VACINAS
 async function registrarConsulta() {
+  const animalId = document.getElementById("cAnimalId").value;
+  const pesoStr = document.getElementById("cPeso").value;
+  const tempStr = document.getElementById("cTemp").value;
+  const peso = pesoStr ? parseFloat(pesoStr) : null;
+  const temp = tempStr ? parseFloat(tempStr) : null;
+
+  if (!animalId) {
+    mostrarLog("Validação de Consulta (HTTP 400)", { erro: "Selecione um animal cadastrado." }, true);
+    return;
+  }
+  if (peso !== null && peso <= 0) {
+    mostrarLog("Validação de Consulta (HTTP 422)", { erro: "O peso na consulta deve ser maior que zero." }, true);
+    return;
+  }
+
   const payload = {
-    animal_id: parseInt(document.getElementById("cAnimalId").value),
+    animal_id: parseInt(animalId),
     veterinario_id: vetLogadoId,
     data_hora: document.getElementById("cDataHora").value,
     motivo: document.getElementById("cMotivo").value,
@@ -910,8 +1066,8 @@ async function registrarConsulta() {
     diagnostico: document.getElementById("cDiagnostico").value,
     tratamento_prescrito: document.getElementById("cTratamento").value,
     prescricao_medicamentos: document.getElementById("cPrescricao").value,
-    peso_registrado: parseFloat(document.getElementById("cPeso").value),
-    temperatura: parseFloat(document.getElementById("cTemp").value),
+    peso_registrado: peso,
+    temperatura: temp,
     situacao: document.getElementById("cSituacao").value
   };
   const r = await fetch(`${API_CLINICA}/consultas`, {
@@ -921,9 +1077,14 @@ async function registrarConsulta() {
 }
 
 async function aplicarVacina() {
+  const animalId = document.getElementById("vacAnimalId").value;
+  if (!animalId) {
+    mostrarLog("Validação de Vacina (HTTP 400)", { erro: "Selecione um animal cadastrado." }, true);
+    return;
+  }
   const tipo = document.getElementById("vacTipo").value;
   const payload = {
-    animal_id: parseInt(document.getElementById("vacAnimalId").value),
+    animal_id: parseInt(animalId),
     veterinario_id: vetLogadoId,
     nome_vacina: document.getElementById("vacNome").value,
     tipo_vacina: tipo,
@@ -944,10 +1105,16 @@ async function aplicarVacina() {
 }
 
 async function consultarHistoricoAnimal() {
-  const id = document.getElementById("histAnimalId").value;
+  const sel = document.getElementById("histAnimalId");
+  const id = sel.value;
+  if (!id) {
+    mostrarLog("Prontuário (HTTP 400)", { erro: "Selecione um animal cadastrado." }, true);
+    return;
+  }
+  const rotuloAnimal = sel.options[sel.selectedIndex].text;
   const rCons = await fetch(`${API_CLINICA}/animais/${id}/consultas`);
   const rVac = await fetch(`${API_CLINICA}/animais/${id}/vacinas`);
-  mostrarLog(`Prontuário Completo do Animal #${id} (HTTP ${rCons.status})`, {
+  mostrarLog(`Prontuário de ${rotuloAnimal} (HTTP ${rCons.status})`, {
     consultas: await rCons.json(),
     vacinacao: await rVac.json()
   });
@@ -971,23 +1138,41 @@ async function reenviarPendentes() {
 }
 
 async function carregarIntegracoes() {
-  const r = await fetch(`${API_CLINICA}/integracoes`);
-  const lista = await r.json();
+  const [rAnim, rInt] = await Promise.all([
+    fetch(`${API_CLINICA}/animais`),
+    fetch(`${API_CLINICA}/integracoes`)
+  ]);
+  const animais = await rAnim.json();
+  const lista = await rInt.json();
+  cacheAnimais = animais;
+  const mapaAnimais = Object.fromEntries(animais.map(a => [a.id, a]));
   const tbody = document.getElementById("tabelaIntegracoes");
-  tbody.innerHTML = lista.map(i => `
+  tbody.innerHTML = lista.map(i => {
+    const a = mapaAnimais[i.animal_id];
+    const nomeAnimal = a
+      ? `<strong>${a.nome}</strong><br><span class="muted">${a.tutor_nome} (${formatarCpf(a.tutor_cpf)})</span>`
+      : `Animal #${i.animal_id}`;
+    return `
     <tr>
-      <td class="id">#${i.id}</td>
-      <td class="num">Animal #${i.animal_id}</td>
-      <td class="num">${i.vacina_id ? `Vacina #${i.vacina_id}` : "-"}</td>
+      <td>${nomeAnimal}</td>
+      <td class="num">${i.vacina_id ? `Aplicação #${i.vacina_id}` : "-"}</td>
       <td>${rotulo(i.tipo_operacao)}</td>
       <td><span class="chip ${i.situacao === 'CONFIRMADA' ? 'chip--ok' : 'chip--warn'}">${rotulo(i.situacao)}</span></td>
       <td>${i.protocolo_externo ? `<code>${i.protocolo_externo}</code>` : '<span class="muted">Pendente</span>'}</td>
       <td class="num">${i.quantidade_tentativas}</td>
       <td><span class="mono muted" title="${i.chave_idempotencia}">${i.chave_idempotencia.substring(0, 12)}…</span></td>
       <td><span class="err">${i.mensagem_erro || "-"}</span></td>
-    </tr>
-  `).join("") || '<tr><td colspan="9" class="empty">Nenhuma operação de integração registrada ainda.</td></tr>';
+    </tr>`;
+  }).join("") || '<tr><td colspan="8" class="empty">Nenhuma operação de integração registrada ainda.</td></tr>';
 }
+
+// Inicialização: bloqueia datas futuras no calendário e carrega listas automaticamente
+document.addEventListener("DOMContentLoaded", () => {
+  const hoje = hojeISO();
+  document.getElementById("tNasc").max = hoje;
+  document.getElementById("aDataNasc").max = hoje;
+  carregarDadosAnimais().catch(() => {});
+});
 </script>
 </body>
 </html>
